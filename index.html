@@ -41,6 +41,7 @@
   .card-desc { font-size:0.9rem; color:var(--text); line-height:1.5; margin-bottom:1rem; }
   .tags { display:flex; flex-wrap:wrap; gap:0.4rem; }
   .tag { font-family:'Share Tech Mono',monospace; font-size:0.7rem; padding:2px 8px; border-radius:3px; letter-spacing:1px; text-transform:uppercase; }
+  .tag-easy { background:rgba(159,239,0,0.15); color:var(--green); border:1px solid rgba(159,239,0,0.3); }
   .tag-medium { background:rgba(255,175,0,0.15); color:var(--orange); border:1px solid rgba(255,175,0,0.3); }
   .tag-linux { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
   .tag-windows { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
@@ -102,9 +103,19 @@
       </div>
       <div class="card-footer"><span>MSSQL → DNS Poison → SOAP Inject</span><span class="read">Read →</span></div>
     </a>
+    <a href="Kobold/" class="card htb">
+      <div class="card-header"><div class="card-name">KOBOLD</div></div>
+      <div class="card-body">
+        <div class="card-desc">Unauthenticated RCE via Arcane MCP API command injection, then docker group membership for trivial root.</div>
+        <div class="tags">
+          <span class="tag tag-easy">Easy</span>
+          <span class="tag tag-linux">Linux</span>
+          <span class="tag tag-seasonal">Seasonal S10</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>CVE-2026-23520 · ben → docker → root</span><span class="read">Read →</span></div>
+    </a>
   </div>
-
-  <div class="section-label">Pro Labs</div>
   <div class="grid">
     <a href="Mythical/" class="card prolab">
       <div class="card-header"><div class="card-name">MYTHICAL</div></div>
@@ -123,7 +134,7 @@
 
   <div class="section-label">CTF Challenges</div>
   <div class="grid">
-    <a href="Project%20Helix/" class="card ctf">
+    <a href="ProjectHelix/" class="card ctf">
       <div class="card-header"><div class="card-name">PROJECT HELIX</div></div>
       <div class="card-body">
         <div class="card-desc">TCM Security Blue Team CTF. Forensic triage, MFT analysis, hidden SDR radio interface, RNA quaternary signal decoding.</div>
