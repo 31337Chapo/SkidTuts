@@ -43,6 +43,7 @@
   .tag { font-family:'Share Tech Mono',monospace; font-size:0.7rem; padding:2px 8px; border-radius:3px; letter-spacing:1px; text-transform:uppercase; }
   .tag-easy { background:rgba(159,239,0,0.15); color:var(--green); border:1px solid rgba(159,239,0,0.3); }
   .tag-medium { background:rgba(255,175,0,0.15); color:var(--orange); border:1px solid rgba(255,175,0,0.3); }
+  .tag-hard { background:rgba(255,62,62,0.15); color:var(--red); border:1px solid rgba(255,62,62,0.3); }
   .tag-linux { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
   .tag-windows { background:rgba(46,168,229,0.1); color:var(--blue); border:1px solid rgba(46,168,229,0.3); }
   .tag-ad { background:rgba(164,78,255,0.1); color:var(--purple); border:1px solid rgba(164,78,255,0.3); }
@@ -127,7 +128,22 @@
       </div>
       <div class="card-footer"><span>XOP/MTOM LFI → Hoverfly RCE → bash overwrite</span><span class="read">Read →</span></div>
     </a>
+    <a href="Garfield/" class="card htb">
+      <div class="card-header"><div class="card-name">GARFIELD</div></div>
+      <div class="card-body">
+        <div class="card-desc">Logon script abuse via SYSVOL write + scriptPath ACL. RBCD on RODC01, then RODC Golden Ticket + KeyList attack for domain compromise.</div>
+        <div class="tags">
+          <span class="tag tag-hard">Hard</span>
+          <span class="tag tag-windows">Windows</span>
+          <span class="tag tag-ad">Active Directory</span>
+          <span class="tag tag-seasonal">Seasonal S10</span>
+        </div>
+      </div>
+      <div class="card-footer"><span>scriptPath → RBCD → RODC Golden Ticket → DC01</span><span class="read">Read →</span></div>
+    </a>
   </div>
+
+  <div class="section-label">Pro Labs</div>
   <div class="grid">
     <a href="Mythical/" class="card prolab">
       <div class="card-header"><div class="card-name">MYTHICAL</div></div>
